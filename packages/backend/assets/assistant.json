@@ -148,7 +148,7 @@
         "isConvertedToTool": true
       },
       "Integrations.PretzelGraph.WorkbenchSDK-2eh9b": {
-        "workflowId": "$in.context.workflow_id",
+        "workflowId": "$in.context.workflowId",
         "isConvertedToTool": true
       }
     },
@@ -209,8 +209,8 @@
         }
       },
       "viewport": {
-        "x": -479.71056829413146,
-        "y": -315.25501185033863,
+        "x": 118.28943170586854,
+        "y": -95.25501185033863,
         "zoom": 0.884775025487433
       },
       "icon_color": null,
