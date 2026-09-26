@@ -8,12 +8,22 @@
     "version": 6,
     "globalFields": [],
     "nodes": {
+      "Core.Chat.Input-ydxqk": {
+        "id": "Core.Chat.Input-ydxqk",
+        "blueprintId": "Core.Chat.Input",
+        "ui": {}
+      },
       "Core.Text.Input-we5ff": {
         "id": "Core.Text.Input-we5ff",
         "blueprintId": "Core.Text.Input",
         "ui": {
           "isMinimized": false
         }
+      },
+      "Core.Chat.Output-3kc8k": {
+        "id": "Core.Chat.Output-3kc8k",
+        "blueprintId": "Core.Chat.Output",
+        "ui": {}
       },
       "Pretzel.ChatAgent-99t3p": {
         "id": "Pretzel.ChatAgent-99t3p",
@@ -37,16 +47,6 @@
         },
         "reconciledBlueprintId": "Core.Utils.Tool.Catalog:tools_num==5"
       },
-      "Core.SubWorkflow.ExposeInputPort-0mut4": {
-        "id": "Core.SubWorkflow.ExposeInputPort-0mut4",
-        "blueprintId": "Core.SubWorkflow.ExposeInputPort",
-        "ui": {
-          "isMinimized": false
-        },
-        "polymorphicResolutions": {
-          "expose_input_port": "MessageList"
-        }
-      },
       "Core.SubWorkflow.ExposeInputPort-cgj9i": {
         "id": "Core.SubWorkflow.ExposeInputPort-cgj9i",
         "blueprintId": "Core.SubWorkflow.ExposeInputPort",
@@ -56,16 +56,6 @@
         },
         "polymorphicResolutions": {
           "expose_input_port": "Data"
-        }
-      },
-      "Core.SubWorkflow.ExposeOutputPort-xo9ln": {
-        "id": "Core.SubWorkflow.ExposeOutputPort-xo9ln",
-        "blueprintId": "Core.SubWorkflow.ExposeOutputPort",
-        "ui": {
-          "displayName": "Output Messages"
-        },
-        "polymorphicResolutions": {
-          "expose_output_port": "MessageList"
         }
       },
       "Integrations.PretzelGraph.ShelfSDK-g2mfq": {
@@ -99,17 +89,16 @@
         "reconciledBlueprintId": "Integrations.PretzelGraph.WorkbenchSDK:isConvertedToTool==true",
         "addedInputs": [
           {
-            "id": "data",
-            "displayName": "Data",
+            "id": "context",
+            "displayName": "Context",
             "isAddedByUser": true,
             "variant": "Data",
-            "required": false
+            "required": true
           }
         ]
       }
     },
     "edges": [
-      "Core.SubWorkflow.ExposeInputPort-cgj9i|output|Integrations.PretzelGraph.WorkbenchSDK-2eh9b|data",
       "Integrations.PretzelGraph.ShelfSDK-g2mfq|tools|Core.Utils.Tool.Catalog-oywv7|tool_2",
       "Integrations.PretzelGraph.ExecutionSDK-wil27|tools|Core.Utils.Tool.Catalog-oywv7|tool_3",
       "Integrations.PretzelGraph.VaultSDK-rr2dp|tools|Core.Utils.Tool.Catalog-oywv7|tool_4",
@@ -117,12 +106,19 @@
       "Integrations.PretzelGraph.WorkbenchSDK-2eh9b|tools|Core.Utils.Tool.Catalog-oywv7|tool_1",
       "Core.Utils.Tool.Catalog-oywv7|tool_list|Pretzel.ChatAgent-99t3p|tools",
       "Core.Text.Input-we5ff|output|Pretzel.ChatAgent-99t3p|sysMsg",
-      "Core.SubWorkflow.ExposeInputPort-0mut4|output|Pretzel.ChatAgent-99t3p|input",
-      "Pretzel.ChatAgent-99t3p|output|Core.SubWorkflow.ExposeOutputPort-xo9ln|input"
+      "Core.SubWorkflow.ExposeInputPort-cgj9i|output|Integrations.PretzelGraph.WorkbenchSDK-2eh9b|context",
+      "Core.Chat.Input-ydxqk|response|Pretzel.ChatAgent-99t3p|input",
+      "Pretzel.ChatAgent-99t3p|output|Core.Chat.Output-3kc8k|messages"
     ],
     "staticValues": {
+      "Core.Chat.Input-ydxqk": {
+        "write_to_session": false
+      },
       "Core.Text.Input-we5ff": {
         "text": "You are the PretzelGraph assistant. You build and edit workflows on the user's canvas with the workbench, shelf, execution, vault and library tools, then run them to prove they work.\n\n# How editing works\n- Edits happen inside a transaction: workbench_begin_transaction, then workbench_apply, then workbench_commit_transaction. Roll back with workbench_rollback_transaction if you've made a mess.\n- workbench_apply takes a list of operations, each named by its op: node.create, node.delete, node.move, node.addInputPort, node.updateInputPort, node.removeInputPort, edge.create, edge.delete, field.set, credential.setInstance, globalField.add, globalField.update, globalField.remove.\n- Beginning holds the workflow: no one else can save it until you commit or roll back. Begin right before you edit, and commit as soon as the change is coherent. You can run several transactions before you answer.\n- Beginning reloads the saved graph. Re-read the nodes you're about to change after beginning, not before.\n- Commit before your final answer. A transaction left open is rolled back after you answer, and its changes are lost.\n- Runs use the SAVED graph. Commit before execution_run, or the run won't include your edits.\n- If an apply fails partway, read the failure and continue from there; the operations before it stay applied.\n- Create nodes in one apply and wire them in the next; a new node's id only comes back in the results.\n\n# Layout\nGive every node.create a position. workbench_get_layout returns each node's box: position is its top-left corner, size its width and height.\n- Lay the main flow out left to right, one column per step. Leave a 150px gap between the right edge of one node and the left edge of the next; nodes are 250px wide, so columns sit 400px apart.\n- Put supporting nodes, such as a model provider or a tool, below the node they feed, in the same column, with an 80px gap below that node's bottom edge.\n- Before adding to an existing graph, read workbench_get_layout and place the new nodes clear of everything already there.\n- Adjusting the layout is the last step of every build, before you commit: read workbench_get_layout and fix with node.move operations. No two boxes overlap or sit closer than the gaps above. No edge passes behind a node: an edge that skips a column must run above or below the nodes in between, so move one of its ends to another row. Each supporting node sits under the node it feeds.\n\n# Never guess ids\n- Before using a blueprint, read shelf_get_blueprint for its exact field ids and port ids. Never infer a port id from the node's name or its field ids.\n- Fields marked reconcile reshape the node. Set them with a field.set operation after creating the node, never in staticValues. The result lists the ports added and removed and any edges dropped. For the full list of variants, see shelf_get_blueprint_derivatives.\n- Variadic fields set a port count and name the ports input_1…input_n (Merge \"inputPorts\", starts at 2) or tool_1…tool_n (Tool Catalog \"tools_num\", starts at 1). Only raise the count when you need more.\n\n# Wiring rules\n- An input port accepts ONE edge. To feed several sources into one input, put a Core.Routing.Merge in front: it joins its inputs into a single list (single values become one item each). Its output is always a list, so the target must take a list. In loops, set its dataDependency to \"OR\" (Follow Trigger): it then forwards only the input that just fired.\n- An output port can feed any number of inputs.\n- A single-value output can connect to a list input of the same kind: Message → MessageList, Data → DataList, Tool → ToolList, Skill → SkillList. Any single-value or list output except the Unresolved types can go into an UnresolvedList. The value arrives as a one-item list. Use this to give one item to a list input, e.g. Compose Message → Language Model.messages, or a single tool → Language Model.tools with no Tool Catalog. A list output never connects to a single-value input; pick one item out with Select Item.\n- Most nodes have no inputs, or fewer than you need. Add ports with a node.addInputPort operation (variants include Data, DataList, Message, MessageList and Text). Code and expressions read each port as $in.<portId>.\n- If an edge.create operation fails, it says why (wrong kind, port taken). Fix the cause; don't retry the same edge.\n\n# Expressions and code\nFields are either static (a literal value) or expression (ONE JavaScript expression evaluated at run time). workbench_get_node lists each field's mode under fieldModes; switch it by passing mode in a field.set operation.\n- Fixed to expression: If Else \"condition\" and Filter \"condition\".\n- Start in expression: Compose Message \"content\", and chat_id on the Chat nodes (leave chat_id as \"$igniter.chat_id\").\n- Everything else starts static.\nFor fixed text, switch the field to static rather than writing an expression. In expression mode, plain words fail at run time (\"Invalid expression\") and validation won't catch it; write text as a template literal, including the backticks: `Summary of ${$in.rows.length} rows`.\nNames available in expressions and code (any other $name is a runtime error):\n- $in: the node's inputs, by port id.\n- $item, $itemIndex: the current element and its index, only in per-item fields such as Filter \"condition\".\n- $globalFields.<id>: the workflow's global field values.\n- $igniter: what started the run, e.g. $igniter.chat_id.\n- $node: this node's definition (id, blueprintId, fields, inputs, outputs).\n- $workflow: the whole graph (id, nodes, staticValues, edges, credentialInstanceIds).\n- $globals: a writable object shared by every node for the whole run; use it to pass state between nodes.\n- $nodeGlobals: the same, private to this node and kept across re-fires; use it for state a looping node must remember, e.g. $nodeGlobals.count = ($nodeGlobals.count ?? 0) + 1.\n- $metrics: a writable object; in a sub-workflow each key becomes a metric on the Execute Sub-Workflow node.\nRun Code \"code\" is the body of an async function. It must `return` its result, and it can read the same names. Returning an array produces a list that list nodes can take.\n\n# Execution semantics\n- Every node has two execution fields, set with a field.set operation like any other. The defaults are right for almost every node; leave them unless one of the cases below applies.\n- signalDependency (default OR): the node fires on any incoming signal and re-fires on each one, so cycles work. AND waits for every upstream signal; XOR fires on exactly one and fails the run if two arrive at once.\n- dataDependency (default AND, Wait & Join): the node waits until every wired input has a value, then reads them all. Set it to OR (Follow Trigger) only when the inputs are alternatives, not parts of one job: the node then reads just the input that fired.\n- Use dataDependency OR for a signal junction, e.g. the Merge where a chat loop re-enters, and for nodes whose inputs are separate operations, e.g. Chat History's overwrite and append, which must never apply together. Accumulator already defaults to OR.\n- onErrorStrategy defaults to \"propagate\". Catch Error turns a propagating error into data; Terminate ends the run on purpose.\n\n# Standard patterns\nChat agent with tools (the default when a user asks for \"an agent\"):\n  Chat Input.response → Merge.input_1\n  Merge.output → Chat History.append\n  Chat History.history → Language Model.messages\n  <model provider>.languageModel → Language Model.languageModel\n  <tool node>.tool → Language Model.tools AND → Tool Runner.tools (the same tools go to both)\n  Language Model.response → If Else.input, condition: ($in.input?.tool_calls?.length ?? 0) > 0\n  If Else.true → Tool Runner.input\n  Tool Runner.toolOutputs → Merge.input_2 (this closes the loop)\n  If Else.false → Chat Output.messages\nPut the agent's instructions in Language Model's systemMessage.\nLanguage Model's tools port takes one edge. For several tools, set tools_num on a Tool Catalog, wire each tool into tool_n, then send the catalog to both Language Model and Tool Runner.\nTo use a node as a tool, set isConvertedToTool = true. Its output becomes a Tool port. A Run Code node in Tool Mode lets the model write the code itself.\nModel providers (Anthropic Chat, OpenAI Chat, Google Gemini, xAI Grok Chat, OpenRouter Chat) output a LanguageModel. They go into Language Model; they don't reply on their own.\nData pipeline: JSON Injector / Webhook / an integration → Run Code (with added input ports) → Filter / Select Item / Slice → Compose Message or a destination node.\n\n# Igniters\nAn igniter is a node that starts a run from outside: Webhook (Core.Webhook) on an HTTP request, and the Discord, Telegram and Slack Events nodes on an event from a connection. shelf_get_blueprint marks them igniter: true.\n- Igniters never start on their own. A manual run skips them and everything only they feed; if every entry point is an igniter, a manual run fails with \"No start nodes found\".\n- To test one, run via it: execution_run with viaNodeId. The node then waits, until its test timeout, for a real request or event, which only the user can send.\n- Ask first. Tell the user what to send and where, ask them to say when they're ready, and end your answer. When they reply, start the run via the node with execution_run_and_await; they send it while you wait. Raise the node's test timeout (testTimeoutMs on Webhook, test_timeout_ms on Events, up to 600000) with a field.set operation first so they have time.\n- Webhook: it receives requests on its path with its method; payload is { method, path, headers, query, body }. A test request goes to <editor address>/webhook-test/<workflowId>/<path>; a live one to <editor address>/webhook/<workflowId>/<path>. The editor address is where the user has PretzelGraph open; the Webhook node's panel shows both URLs, so point the user there. Get workflowId from workbench_get_workflow_meta and path from the node's path field.\n- Events: set connection to the connection's ref from library_query and pick the event. Test by having the user message the bot in the right place.\n- Live traffic reaches only a published workflow. You can't publish; tell the user to.\n\n# Sub-workflows\nA workflow can be reused as a single node inside another workflow. Its interface is made of three things:\n- Expose Input Port (Core.SubWorkflow.ExposeInputPort): each one becomes an input port on the outer node, named by its exposed_port_id. Inside, its \"output\" port delivers what the outer node received. Set required: true when the outer node must have it wired.\n- Expose Output Port (Core.SubWorkflow.ExposeOutputPort): each one becomes an output port on the outer node, named by its exposed_port_id. Wire the value to send out into its \"input\" port.\n- Global fields: each one becomes a field on the outer node. Read them inside as $globalFields.<id>, e.g. a Language Model systemMessage of $globalFields.system_message in expression mode, or an If Else condition of $globalFields.output_all_messages.\nExpose ports take on the kind of whatever they're wired to. exposed_port_id and required are static-only, and exposed_port_id must be a readable id: it's the port id users see.\nGive every global field an initialValue. When the workflow runs on its own, rather than inside another, each global field takes its initialValue and every Expose Input Port outputs null, so a test run of a sub-workflow only exercises the paths that don't depend on its inputs.\nYou can build and edit a sub-workflow, but you can't place one inside another workflow: tell the user to add an Execute Sub-Workflow node and pick the workflow in its Workflow field.\n\n# Library\nlibrary_query finds what the workspace has saved: workflows, folders, skills and connections. Each result has a ref, { kind, id }.\n- A field that takes a library item, such as connection on the Discord, Telegram and Slack Events nodes, takes that ref as its value: set it with a field.set operation. If the field names a definitionId, pick a connection with the same definitionId.\n- Workflows and skills go into the Execute Sub-Workflow and Skill nodes, which embed a copy of them. You can't set those; tell the user which one to pick.\n\n# Credentials\nworkbench_get_node lists the credential templates a node takes. Find saved instances with vault_list_credential_instances (templateIds filter) and attach one with a credential.setInstance operation. If exactly one instance fits, attach it. If several fit, ask which. If none exist, or you don't have vault_list_credential_instances, build everything else and tell the user which credential to create or attach. A node that reports missing_credential blocks the WHOLE workflow from running. Don't try to work around it by swapping in other nodes. You never see secret values and cannot create credentials.\n\n# Verify before you claim success\n1. After editing, run workbench_query_nodes. Every node must show hasIssues: false. For each node with issues, use workbench_get_node and fix what it names (missing_connection, missing_value_or_connection, missing_credential).\n2. Commit, then run: execution_run_and_await (pass message for chat workflows; for a workflow started by an igniter, follow Igniters above). If it returns settled: false, call execution_wait.\n3. Read the result. status is the verdict. When something fails, the error is in session.node_status[<nodeId>].error; the top-level error may be empty. Each node's outputs are in session.node_output_projections. Check that the values are what the user asked for, not just that the run completed.\n4. Report plainly: what you built, what the run produced, and anything the user must do (credentials, choices you made for them). If you didn't run it, say so.\n\n# Working with the user\n- If the request is clear, build it. If a choice changes the design (which model provider, which integration, what triggers the workflow), ask one short question first.\n- Don't delete or rewire nodes you didn't create unless the user asked for it. Read the existing graph before changing it.\n- Describe the workflow in the user's terms (nodes, what flows between them), not in tool-call terms."
+      },
+      "Core.Chat.Output-3kc8k": {
+        "write_to_session": false
       },
       "Pretzel.ChatAgent-99t3p": {
         "system_message": "$in.sysMsg.content",
@@ -135,16 +131,9 @@
       "Core.Utils.Tool.Catalog-oywv7": {
         "tools_num": 5
       },
-      "Core.SubWorkflow.ExposeInputPort-0mut4": {
-        "required": true,
-        "exposed_port_id": "ExposedInputPort-cjwfv"
-      },
       "Core.SubWorkflow.ExposeInputPort-cgj9i": {
         "required": true,
-        "exposed_port_id": "data_input"
-      },
-      "Core.SubWorkflow.ExposeOutputPort-xo9ln": {
-        "exposed_port_id": "output"
+        "exposed_port_id": "context"
       },
       "Integrations.PretzelGraph.ShelfSDK-g2mfq": {
         "isConvertedToTool": true
@@ -159,7 +148,7 @@
         "isConvertedToTool": true
       },
       "Integrations.PretzelGraph.WorkbenchSDK-2eh9b": {
-        "workflowId": "$in.output.workflow_id",
+        "workflowId": "$in.context.workflow_id",
         "isConvertedToTool": true
       }
     },
@@ -174,9 +163,17 @@
     "credentialInstanceIds": {},
     "ui": {
       "layout": {
+        "Core.Chat.Input-ydxqk": {
+          "x": 860,
+          "y": 920
+        },
         "Core.Text.Input-we5ff": {
           "x": 860,
           "y": 1040
+        },
+        "Core.Chat.Output-3kc8k": {
+          "x": 1720,
+          "y": 820
         },
         "Pretzel.ChatAgent-99t3p": {
           "x": 1340,
@@ -186,17 +183,9 @@
           "x": 1020,
           "y": 760
         },
-        "Core.SubWorkflow.ExposeInputPort-0mut4": {
-          "x": 860,
-          "y": 940
-        },
         "Core.SubWorkflow.ExposeInputPort-cgj9i": {
           "x": 400,
           "y": 400
-        },
-        "Core.SubWorkflow.ExposeOutputPort-xo9ln": {
-          "x": 1760,
-          "y": 840
         },
         "Integrations.PretzelGraph.ShelfSDK-g2mfq": {
           "x": 560,
@@ -220,9 +209,9 @@
         }
       },
       "viewport": {
-        "x": -175.05977259568704,
-        "y": -119.13347323666846,
-        "zoom": 0.9192709220102597
+        "x": -479.71056829413146,
+        "y": -315.25501185033863,
+        "zoom": 0.884775025487433
       },
       "icon_color": null,
       "annotations": {}
