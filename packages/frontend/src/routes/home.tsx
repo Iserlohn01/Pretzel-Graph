@@ -59,10 +59,12 @@ function HomeLayout() {
             </div>
 
 
-            <div className="relative z-10 flex flex-row bg-background/80 backdrop-blur-lg max-h-screen rounded-tr-2xl min-h-screen mr-auto">
+            <div className="relative z-10 flex flex-row max-h-screen rounded-tr-2xl min-h-screen mr-auto [--sidebar-width:14rem]">
+                {/* The panel's tint and blur, as a layer behind its content */}
+                <div className="absolute inset-0 -z-10 rounded-tr-2xl bg-background/80 backdrop-blur-lg pointer-events-none" />
                 <Sidebar />
                 <div className='relative lg:w-[1150px] w-full'>
-                    <nav className="absolute z-20 top-0 min-h-[60px] px-4 flex items-center">
+                    <nav className="absolute z-20 top-0 min-h-[60px] pl-4 flex items-center">
                         <h1 className="text-xl font-semibold">
                             {currentNav && currentNav.label}
                         </h1>
@@ -82,7 +84,7 @@ function HomeLayout() {
 
 function Sidebar() {
     return (
-        <aside className="w-56 shrink-0 flex flex-col">
+        <aside className="relative z-20 w-(--sidebar-width) shrink-0 flex flex-col bg-(--surface-elevated-sidebar)/0 backdrop-blur-lg">
             <div className="h-14 px-4 flex items-center">
                 <PretzelGraphDropdown>
                     <AdminPanelItem />

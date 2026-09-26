@@ -17,7 +17,7 @@ function LibraryLayout() {
 
     return (
         <LibraryBrowser.Root cwd={cwd} setCwd={setCwd} onItemClick={openItem}>
-            <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-6 pl-4">
 
                 {/* Search input cannot be underneath a mask because blur stops working >:( */}
                 <div className='relative'>
@@ -25,7 +25,7 @@ function LibraryLayout() {
                         <LibraryBrowser.Tree.SearchInput
                             className='rounded-full!'
                             size="sm"
-                            wrapperClassName='flex-1 mx-1'
+                            wrapperClassName='flex-1 mr-2'
                         />
                     </LibraryBrowser.Tree.Header>
                     <LibraryBrowser.Tree
