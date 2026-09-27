@@ -97,10 +97,11 @@ const ToolbarContent: React.FC<Props> = memo(({ hyNode }) => {
                     )}
                     {shapeDependencyRef && (
                         <Tipped label="Open workflow">
-                            <Button variant="ghost-primary" size="xs" className='h-6! rounded-full!'
+                            <Button variant="ghost-primary" size="xs" className='h-6! px-1! font-semibold rounded-full!'
                                 onClick={() => WorkbenchSDK.openWorkflowWindow(shapeDependencyRef.id)}
                             >
-                                Open <SystemIcons.Graph />
+                                <SystemIcons.Graph className='size-3.5'/>
+                                Open 
                             </Button>
                         </Tipped>
                     )}
@@ -121,7 +122,6 @@ const ToolbarContent: React.FC<Props> = memo(({ hyNode }) => {
         </div>
     )
 })
-
 
 const ProxyButton = memo(({ nodeId }: { nodeId: Workflow.Node.Id }) => {
     const proxyTemplate = WorkbenchSDK.useDocument(d =>

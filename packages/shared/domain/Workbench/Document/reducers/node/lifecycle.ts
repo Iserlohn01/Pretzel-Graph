@@ -236,7 +236,7 @@ export const nodeLifecycleReducers: NodeLifecycleReducers = {
         const node = d.data.nodes[nodeId];
         if (!node) return;
     },
-    recreate: (d, nodeId, blueprint, credentialDefaults) => {
+    recreate: (d, nodeId, blueprint) => {
         const node = d.data.nodes[nodeId];
         if (!node)
             throw new Error(`Node ${nodeId} not found`);
@@ -278,8 +278,7 @@ export const nodeLifecycleReducers: NodeLifecycleReducers = {
         // Restore the carried-over values/credentials (kept where keys still exist,
         // gaps filled with the new blueprint's defaults).
         d.reducers.node.populateInitialValues(d, nodeId, blueprint.fields, blueprint.inputs, staticValues);
-        // Carried-over assignments win; defaults only fill credentials the new blueprint added.
-        d.reducers.node.populateCredentialInstances(d, nodeId, { ...(credentialDefaults ?? {}), ...(credentialInstances ?? {}) });
+        d.reducers.node.populateCredentialInstances(d, nodeId, credentialInstances);
 
         if (nodeLayout)
             d.reducers.layout.node.add(d, nodeId, nodeLayout);
@@ -407,7 +406,7 @@ export interface NodeLifecycleReducers {
     create      : (document: Document, blueprint: Foundations.Blueprint, position: { x: number, y: number }, staticValues?: Record<Foundations.Field.Id | Foundations.Port.Input.Id, Foundations.Field.Value>, credentialInstanceIds?: Record<Vault.Credential.Template.Id, Vault.Credential.Instance.Id>) => NodeId;
     insert      : (document: Document, node: Workflow.Node.Raw, position: { x: number, y: number }, staticValues: Workflow.Data["staticValues"][NodeId]) => void;
     disconnect  : (document: Document, nodeId: NodeId) => void;
-    recreate    : (document: Document, nodeId: NodeId, blueprint: Foundations.Blueprint, credentialDefaults?: Record<Vault.Credential.Template.Id, Vault.Credential.Instance.Id>) => void;
+    recreate    : (document: Document, nodeId: NodeId, blueprint: Foundations.Blueprint) => void;
     duplicate   : (document: Document, originalNode: Workflow.Node.Raw, position?: { x: number, y: number }, overrides?: {
         staticValues?: Record<Foundations.Field.Id | Foundations.Port.Input.Id, Foundations.Field.Value>;
         fieldExpressions?: Record<Foundations.Field.Id, boolean>;

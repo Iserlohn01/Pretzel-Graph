@@ -1,3 +1,4 @@
+import type { Dependency } from "../../Dependency"
 import type { Foundations } from "../../Foundations"
 import type { Vault } from "../../Vault"
 import type { Workflow } from "../../Workflow"
@@ -11,6 +12,8 @@ export type BlueprintResolver = (blueprintId: Foundations.Blueprint.Id) => Promi
 export type OnOperation       = (edit: Event.Unstamped) => void
 /** Null when no instance has that id. */
 export type CredentialResolver = (instanceId: Vault.Credential.Instance.Id) => Promise<Vault.Credential.Summary | null>
+/** The snapshot a dependency embeds, taken from its source. */
+export type DependencyResolver = (ref: Dependency.Ref) => Promise<Dependency.Value>
 
 export interface CreateNodeRequest {
     blueprintId:   Foundations.Blueprint.Id

@@ -1,6 +1,6 @@
 import { Foundations } from "../../Foundations"
 import { Port } from "../../Foundations/Port"
-import type { Workflow } from "../../Workflow"
+import { Workflow } from "../../Workflow"
 import { Document } from "../Document"
 import { Summary } from "./summary"
 import { ID_PATTERN, type CreateNodeRequest, type InputPortSpec, type Position } from "./types"
@@ -83,6 +83,20 @@ export class NodeOperations {
             position:     d.data.ui.layout[nodeId],
             staticValues: d.data.staticValues[nodeId] ?? {},
         })
+
+        // A node that runs a workflow needs that workflow's snapshot; without it the node is removed.
+        const shapeRef = d.selectors.node.dependency.getShapeRef(d, nodeId)
+
+        if (shapeRef && !d.selectors.dependency.get(d, shapeRef)) {
+            try {
+                await this.client.field.attachDependency(nodeId, Workflow.Node.SHAPE_DEPENDENCY_FIELD_ID, shapeRef)
+            }
+            catch (error) {
+                this.delete(nodeId)
+
+                throw new Error(`Could not load the workflow ${blueprint.id} runs: ${(error as Error).message}`)
+            }
+        }
 
         return { nodeId, issues: d.issues.nodes[nodeId] ?? null }
     }

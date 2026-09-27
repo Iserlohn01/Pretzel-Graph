@@ -1,6 +1,7 @@
 import { Controller, UseGuards, Get, Post, Param, HttpCode } from '@nestjs/common';
 import { ResourceService } from './resource.service';
 import { MemberAuthGuard } from '../../auth/member-auth.guard';
+import { MemberOrDelegateGuard } from '../../auth/member-or-delegate.guard';
 import { AuthenticatedUser } from '@/decorators/principal';
 import { Principal } from '@/domain/Principal';
 import { Dependency, Resource } from '@pretzel-graph/shared/domain';
@@ -11,7 +12,7 @@ export class ResourceController {
     constructor(private readonly resourceService: ResourceService) { }
 
     @Get(':kind/:id')
-    @UseGuards(MemberAuthGuard)
+    @UseGuards(MemberOrDelegateGuard)
     async load(
         @AuthenticatedUser() principal: Principal.User,
         @Param('kind') kind: Dependency.Ref.Kind,

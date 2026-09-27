@@ -1,3 +1,4 @@
+import { Dependency } from "../../Dependency"
 import { Foundations } from "../../Foundations"
 import type { Workflow } from "../../Workflow"
 import { Document, type DeriveResult } from "../Document"
@@ -19,9 +20,14 @@ export class FieldOperations {
     }
 
     /** With a mode, the field switches to it first, so the value is read in that mode. */
-    public set(nodeId: Workflow.Node.Id, fieldId: Foundations.Field.Id, value: unknown, mode?: FieldMode): { nodeId: Workflow.Node.Id, fieldId: Foundations.Field.Id, mode: FieldMode, issues: Summary.NodeIssues, derivation: DeriveResult | null } {
+    public async set(nodeId: Workflow.Node.Id, fieldId: Foundations.Field.Id, value: unknown, mode?: FieldMode): Promise<{ nodeId: Workflow.Node.Id, fieldId: Foundations.Field.Id, mode: FieldMode, issues: Summary.NodeIssues, derivation: DeriveResult | null }> {
         if (mode)
             this.setMode(nodeId, fieldId, mode)
+
+        const target = this.client.document.selectors.field.get(this.client.document, nodeId, fieldId)
+
+        if (target?.variant === "Dependency" && value !== null)
+            return this.setDependency(nodeId, target, value)
 
         return withCyclesRecompute((d: Document) => {
             const field = d.selectors.field.get(d, nodeId, fieldId)
@@ -62,6 +68,30 @@ export class FieldOperations {
         }
 
         return { nodeId, fieldId, mode, value: d.selectors.node.getStaticValue(d, nodeId, fieldId), issues: d.issues.nodes[nodeId] ?? null }
+    }
+
+    /** Points the field at a dependency and embeds its snapshot, reusing the one the workflow already has. */
+    public async attachDependency(nodeId: Workflow.Node.Id, fieldId: Foundations.Field.Id, ref: Dependency.Ref): Promise<void> {
+        const embedded = this.client.document.selectors.dependency.get(this.client.document, ref)
+        const snapshot = embedded ?? await this.client.resolveDependency(ref)
+
+        withCyclesRecompute((d: Document) => {
+            d.reducers.field.dependency.setValue(d, nodeId, fieldId, ref, snapshot)
+            this.client.report({ type: "field:dependencySet", nodeId, fieldId, ref })
+        })(this.client.getDocument())
+    }
+
+    private async setDependency(nodeId: Workflow.Node.Id, field: Foundations.Field.Dependency, value: unknown) {
+        const ref = Dependency.Ref.Schema.parse(value)
+
+        if (!field.acceptsKind.includes(ref.kind))
+            throw new Error(`Field ${field.id} accepts ${field.acceptsKind.join(", ")}, not ${ref.kind}`)
+
+        await this.attachDependency(nodeId, field.id, ref)
+
+        const d = this.client.getDocument()
+
+        return { nodeId, fieldId: field.id, mode: this.getMode(d, nodeId, field), issues: d.issues.nodes[nodeId] ?? null, derivation: null }
     }
 
     public getMode(d: Document, nodeId: Workflow.Node.Id, field: Foundations.Field): FieldMode {

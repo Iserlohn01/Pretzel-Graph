@@ -3,6 +3,7 @@ import { Realtime } from "../Realtime"
 import { Workflow } from "../Workflow"
 import { Foundations } from "../Foundations"
 import { Vault } from "../Vault"
+import { Dependency } from "../Dependency"
 import { ExecutionId } from "../Execution/ids"
 
 // One channel per workflow: workbench:<workflowId>. Carries what happens to a workflow as a
@@ -100,6 +101,14 @@ export namespace Event {
             mode:    z.enum(["static", "expression"]),
         })
         export type ModeSet = z.infer<typeof ModeSet>
+
+        export const DependencySet = Base.extend({
+            type:    z.literal("field:dependencySet"),
+            nodeId:  Workflow.Node.Id,
+            fieldId: Foundations.Field.Id,
+            ref:     Dependency.Ref.Schema,
+        })
+        export type DependencySet = z.infer<typeof DependencySet>
     }
 
     export namespace Credential {
@@ -125,7 +134,7 @@ export namespace Event {
         Lock.Acquired, Lock.Released,
         Node.Created,  Node.Deleted, Node.Moved, Node.InputPortAdded, Node.InputPortRemoved, Node.InputPortUpdated,
         Edge.Created,  Edge.Deleted,
-        Field.Set,    Field.ModeSet,
+        Field.Set,    Field.ModeSet, Field.DependencySet,
         Credential.InstanceSet,
     ])
 

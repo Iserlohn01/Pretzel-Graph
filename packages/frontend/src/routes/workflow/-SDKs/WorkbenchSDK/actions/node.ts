@@ -2,32 +2,11 @@ import type { DropFirstArg } from "@/SDKs/types";
 import type { WorkbenchSDKImpl, WorkbenchSDK } from "../sdk"
 import { withAsyncCommit, withCommit, withCyclesRecompute } from "../utils/actions"
 import { ShelfSDK } from "../../ShelfSDK/sdk";
-import { Foundations, SystemError, Vault, Workbench, type Workflow } from "@pretzel-graph/shared/domain";
-import { VaultSDK } from "@/SDKs/VaultSDK/sdk";
+import { Resource, SystemError, type Workflow } from "@pretzel-graph/shared/domain";
 import type { Field } from "@pretzel-graph/shared/domain/Foundations/Field";
 import { toast } from "sonner";
-import { api } from "@/SDKs/ApiInterceptorSDK";
-import { extractExposedPorts } from "@pretzel-graph/shared/subworkflow";
-import { loadResource } from "./dependency";
 import { ANIMATE_EVERY_CREATE } from "../animations";
-
-// Policy, not document state: attach a credential automatically only when exactly one vault
-// instance matches the template. Optional templates are opt-in and never auto-attached.
-const resolveCredentialDefaults = (blueprint: Foundations.Blueprint) => {
-    const defaults: Record<Vault.Credential.Template.Id, Vault.Credential.Instance.Id> = {};
-
-    for (const template of blueprint.credentials ?? []) {
-        if (template.optional)
-            continue;
-
-        const instances = VaultSDK.state.selectors.byTemplateId(VaultSDK.state, template.id);
-
-        if (instances.length === 1)
-            defaults[template.id] = instances[0].id;
-    }
-
-    return defaults;
-};
+import { api } from "@/SDKs/ApiInterceptorSDK";
 
 export function createNodeActions(sdk: WorkbenchSDKImpl) {
     const setDocument = sdk.setDocument;
@@ -62,9 +41,7 @@ export function createNodeActions(sdk: WorkbenchSDKImpl) {
             }
             
             
-            const credentialDefaults = resolveCredentialDefaults(blueprint);
-
-            setDocument(withCyclesRecompute(d => { reducers.node.recreate(d, nodeId, blueprint, credentialDefaults)}));
+            setDocument(withCyclesRecompute(d => { reducers.node.recreate(d, nodeId, blueprint)}));
         }),
         recreateAll:       withAsyncCommit( async () => {
             const s = sdk.document;
@@ -88,20 +65,15 @@ export function createNodeActions(sdk: WorkbenchSDKImpl) {
                         console.error(`Skipping recreate for ${node.id}: blueprint ${node.blueprintId} failed to hydrate`);
                         continue;
                     }
-                    reducers.node.recreate(d, node.id, blueprint, resolveCredentialDefaults(blueprint));
+                    reducers.node.recreate(d, node.id, blueprint);
                 }
             }));
         }),
         create:        withAsyncCommit( async (...props) => { 
-            const blueprint = props[0];
-
-            // Caller-supplied assignments win over the auto-attach defaults.
-            const credentials = { ...resolveCredentialDefaults(blueprint), ...(props[3] ?? {}) };
-
             let createdId = null as Workflow.Node.Id | null;
 
             setDocument(d => {
-                createdId = reducers.node.create(d, props[0], props[1], props[2], credentials)
+                createdId = reducers.node.create(d, ...props)
             })
 
             const nodeId = createdId;
@@ -114,24 +86,24 @@ export function createNodeActions(sdk: WorkbenchSDKImpl) {
             // A pre-wired node lands with its dependency pointer set; fetch the snapshot if the workflow
             // lacks it. On failure, remove the node — it can't function without its dependency data.
             const shapeDepRef = sdk.selectors.node.dependency.getShapeRef(sdk.document, nodeId);
-            if (!shapeDepRef)
+
+            if (!shapeDepRef || sdk.selectors.dependency.get(sdk.document, shapeDepRef))
                 return;
 
-            if (sdk.selectors.dependency.get(sdk.document, shapeDepRef))
-                return;
+            try {
+                const { dependency } = await Resource.API.load(api, shapeDepRef);
 
-            const fetchDepPromise = loadResource(shapeDepRef);
-
-            fetchDepPromise.then(({ dependency }) => {
-                sdk.actions.dependency.registerDependency(shapeDepRef, dependency);
-            })
-            fetchDepPromise.catch(err => {
+                setDocument(d => {
+                    reducers.dependency.register(d, shapeDepRef, dependency)
+                })
+            }
+            catch (err) {
                 const error = SystemError.fromUnknown(err)
-                console.error("Failed to load dependency for node", error)
+
                 toast.error(`Failed to load dependency for node: ${error.message}`)
                 sdk.actions.node.remove(nodeId)
-            })
-}),
+            }
+        }),
     } satisfies NodeActions;
 }
 
