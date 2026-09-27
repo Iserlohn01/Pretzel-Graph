@@ -9,6 +9,9 @@ import { CloudService } from '../Cloud/cloud.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { System } from '@pretzel-graph/shared/system';
+import { RELEASE } from '@/utils/release';
+
+const EXTENDED_SHELF_TTL_MS = 5 * 60_000;
 
 const NODES_ROOT = process.env.NODES_ROOT ?? path.resolve(__dirname, '../../../../nodes/src');
 
@@ -33,6 +36,7 @@ export class ShelfService {
     private readonly log = System.log.withContext("Shelf");
 
     private extendedIndex: Record<Blueprint.Id, Blueprint> | null = null;
+    private extendedFetchedAt = 0;
     private summaries:     Shelf.Catalogue.Summary[] | null       = null;
     private readonly loadableNodes = new Map<Blueprint.Id, LoadableNode>();
 
@@ -84,9 +88,10 @@ export class ShelfService {
     }
 
 
-    // The extended shelf blueprints, fetched from the registry once and kept for the process.
+    // The extended shelf blueprints this release can run, refetched once the last fetch is stale;
+    // a failed refetch keeps serving the last one.
     async ensureExtendedShelfIndex(): Promise<Record<Blueprint.Id, Blueprint>> {
-        if (this.extendedIndex)
+        if (this.extendedIndex && Date.now() - this.extendedFetchedAt < EXTENDED_SHELF_TTL_MS)
             return this.extendedIndex;
 
         if (!this.cloud.isConfigured)
@@ -98,7 +103,7 @@ export class ShelfService {
             listings = await this.getPretzelOfficialListings();
         } catch (error) {
             this.log.warning(`Could not fetch the extended shelf: ${(error as Error).message}`);
-            return {};
+            return this.extendedIndex ?? {};
         }
 
         const base = getCoreIndex().blueprints['Core.SubWorkflow.Execute' as Blueprint.Id];
@@ -111,8 +116,9 @@ export class ShelfService {
                 blueprints[blueprint.id] = blueprint;
         }
 
-        this.extendedIndex = blueprints;
-        this.summaries     = null;
+        this.extendedIndex     = blueprints;
+        this.extendedFetchedAt = Date.now();
+        this.summaries         = null;
 
         return blueprints;
     }
@@ -129,7 +135,7 @@ export class ShelfService {
     }
 
     private async getPretzelOfficialListings(): Promise<Listing[]> {
-        const response = await this.cloud.fetch('/api/extended-shelf', { method: 'GET' });
+        const response = await this.cloud.fetch(`/api/extended-shelf?release=${encodeURIComponent(RELEASE)}`, { method: 'GET' });
 
         if (!response.ok)
             throw new Error(`Extended shelf answered ${response.status}`);

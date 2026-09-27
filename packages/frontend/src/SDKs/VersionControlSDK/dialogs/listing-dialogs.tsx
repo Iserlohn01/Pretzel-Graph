@@ -55,9 +55,9 @@ export function openUnlistWorkflowDialog(workflowId: Workflow.Id) {
         >
             <div className='font-semibold'>Make this workflow private?</div>
             <div className='text-sm text-muted-foreground mt-1'>
-                The public copy is removed and nobody new can attach it. Workflows
-                that already use it keep their embedded copy, but no longer receive
-                updates. Making it public again creates a new listing under a new id.
+                The listing is hidden and nobody new can attach it. Workflows that
+                already use it keep their embedded copy, but receive no updates while
+                it is private. Making it public again resumes the same listing id.
             </div>
         </DialogSDK.AlertTemplate>
     ))

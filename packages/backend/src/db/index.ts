@@ -196,12 +196,16 @@ export namespace DB {
             created_by:    Auth.User.Id.nullable(),
             workflow_id:   WorkflowD.Id,
             workflow_data: WorkflowD.Data.Schema,
+            // This workflow's own publication counter: 1, 2, 3…
             version:       z.number().default(1),
+            // The label the user gave it, e.g. "v1.2".
             name:          z.string(),
             description:   z.string().nullable(),
             workflow_meta: WorkflowD.Meta.Schema,
             is_deployed:   z.boolean().default(false),
             published_at:  z.string(),
+            // The PretzelGraph version it was published on, e.g. "0.0.735"; null before this was recorded.
+            release:       z.string().nullable(),
         });
         export type Row = z.infer<typeof Row>;
 

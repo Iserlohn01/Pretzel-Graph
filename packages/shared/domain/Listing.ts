@@ -22,15 +22,18 @@ export namespace Listing {
     export const PublicationMeta = VersionControl.Publication.Meta.Schema.omit({ is_deployed: true })
     export type PublicationMeta = z.infer<typeof PublicationMeta>
 
-    // The owner's deployed publication, verbatim, under the registry's id.
+    // One of the owner's deployed publications, verbatim, under the registry's id: the version
+    // the caller's release resolves to.
     export const Schema = z.object({
         id:              Id,
         publicationMeta: PublicationMeta,
         get workflowData() { return Workflow.Data.Schema },
         // Set by the registry operator on extended shelf entries only.
         blueprintId:     z.string().nullable().optional(),
+        version:         z.number().int(),
+        release:         z.string(),
+        publishedAt:     z.coerce.date(),
         createdAt:       z.coerce.date(),
-        updatedAt:       z.coerce.date(),
     })
 
     // The embedded form a depending workflow keeps, under the registry's id.
@@ -84,6 +87,8 @@ export namespace Listing {
             export const Request = z.object({
                 publicationMeta: PublicationMeta,
                 get workflowData() { return Workflow.Data.Schema },
+                // The release the publication was built on.
+                release:         z.string(),
             })
             export type Request = z.infer<typeof Request>
 

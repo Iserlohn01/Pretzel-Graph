@@ -5,6 +5,7 @@ import { Listing, SystemError, VersionControl, Workflow } from '@pretzel-graph/s
 import { DeploymentRepository } from '../Deployment/deployment.repository';
 import { ListingRegistry } from './registry.client';
 import { System } from '@pretzel-graph/shared/system';
+import { RELEASE } from '@/utils/release';
 
 const ROOT_FOLDER_ID = '00000000-0000-4000-8000-000000000001' as Workflow['folder_id'];
 
@@ -143,6 +144,7 @@ function toRequest(publication: VersionControl.Publication): Listing.API.Put.Req
     return {
         publicationMeta: Listing.PublicationMeta.parse(meta),
         workflowData:    workflow_data,
+        release:         publication.release ?? RELEASE,
     };
 }
 
