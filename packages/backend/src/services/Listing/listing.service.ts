@@ -40,7 +40,6 @@ export class ListingService {
             accent:       meta.workflow_meta.accent,
             icon_color:   meta.workflow_meta.icon_color,
             locked:       true,
-            listing_id:   entry.id,
             folder_id:    ROOT_FOLDER_ID,
             created_at:   meta.published_at,
             updated_at:   meta.published_at,

@@ -1,12 +1,11 @@
 import { DialogSDK } from "@pretzel-graph/standard-ui/SDKs/DialogSDK";
 import type { VersionControl, Workflow } from "@pretzel-graph/shared/domain";
 import { toast } from "sonner";
-import { LibrarySDK } from "@/SDKs/LibrarySDK/sdk";
 import { VersionControlSDK } from "../sdk";
 import { getPublicationLabel } from "../utils";
 
 const isListing = (workflowId: Workflow.Id) =>
-    Boolean(LibrarySDK.state.workflowMetas[workflowId]?.listing_id);
+    VersionControlSDK.state.selectors.getListingId(VersionControlSDK.state, workflowId) !== null;
 
 const ListingNote = () => (
     <div className="text-sm text-muted-foreground mt-2">

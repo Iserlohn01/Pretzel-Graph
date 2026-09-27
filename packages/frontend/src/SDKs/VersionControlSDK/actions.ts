@@ -1,6 +1,5 @@
 import { Deployment, VersionControl, Workflow } from "@pretzel-graph/shared/domain";
 import { api } from "../ApiInterceptorSDK";
-import { LibrarySDK } from "../LibrarySDK/sdk";
 import type { VersionControlSDKImpl } from "./sdk";
 
 export const createVersionControlSDKActions = (sdk: VersionControlSDKImpl) => {
@@ -29,7 +28,6 @@ export const createVersionControlSDKActions = (sdk: VersionControlSDKImpl) => {
             const wasDeployed = sdk.state.deployments[workflowId]?.id === publicationId;
             if (wasDeployed) {
                 sdk.setState(s => { s.reducers.deployments.remove(s, workflowId) });
-                LibrarySDK.actions.workflow.__removeListingId(workflowId);
             }
             void sdk.invalidate(sdk.query.publications(workflowId));
             return data;
@@ -65,9 +63,25 @@ export const createVersionControlSDKActions = (sdk: VersionControlSDKImpl) => {
         undeploy: async (workflowId) => {
             const data = await Deployment.API.undeploy(api, workflowId);
             sdk.setState(s => { s.reducers.deployments.remove(s, workflowId) });
-            LibrarySDK.actions.workflow.__removeListingId(workflowId);
             void sdk.invalidate(sdk.query.publications(workflowId));
             return data;
+        },
+
+        listListings: async () => {
+            const data = await Deployment.API.Listing.list(api);
+            sdk.setState(s => { s.reducers.listings.set(s, data.listings) });
+            return data;
+        },
+
+        listWorkflow: async (workflowId) => {
+            const data = await Deployment.API.Listing.create(api, workflowId);
+            sdk.setState(s => { s.reducers.listings.put(s, workflowId, data.listingId) });
+            return data;
+        },
+
+        unlistWorkflow: async (workflowId) => {
+            await Deployment.API.Listing.remove(api, workflowId);
+            sdk.setState(s => { s.reducers.listings.remove(s, workflowId) });
         },
     } satisfies VersionControlSDKActions;
 };
@@ -82,4 +96,7 @@ export type VersionControlSDKActions = {
     deployWorkflow: (workflowId: Workflow.Id) => Promise<Deployment.API.DeployWorkflow.Response>
     deployPublication: (workflowId: Workflow.Id, publicationId: VersionControl.Publication.Id) => Promise<Deployment.API.DeployPublication.Response>
     undeploy: (workflowId: Workflow.Id) => Promise<Deployment.API.Undeploy.Response>
+    listListings: () => Promise<Deployment.API.Listing.List.Response>
+    listWorkflow: (workflowId: Workflow.Id) => Promise<Deployment.API.Listing.Create.Response>
+    unlistWorkflow: (workflowId: Workflow.Id) => Promise<void>
 };

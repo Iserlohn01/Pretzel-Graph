@@ -13,17 +13,14 @@ import { openWorkflowSettingsDialog } from '../-SDKs/WorkbenchSDK/ui/WorkflowSet
 export const TopRightPanel = () => {
     const workflowId = WorkbenchSDK.useDocument(d => d.workflowId);
 
-    const [isDeployed, [publicationsQuery]] = VersionControlSDK.useWith(
-        (s) => s.selectors.getDeployed(s, workflowId) !== null,
-        (q) => [q.publications(workflowId), q.deployment(workflowId)],
+    const [[isDeployed, isPubliclyListed], [publicationsQuery]] = VersionControlSDK.useWith(
+        (s) => [s.selectors.getDeployed(s, workflowId) !== null, s.selectors.getListingId(s, workflowId) !== null] as const,
+        (q) => [q.publications(workflowId), q.deployment(workflowId), q.listings],
     );
 
     const hasPublications = (publicationsQuery.data?.publications.length ?? 0) > 0;
 
-    const [isLocked, isPubliclyListed] = LibrarySDK.useStore(s => [
-        s.workflowMetas[workflowId]?.locked ?? false,
-        !!s.workflowMetas[workflowId]?.listing_id 
-    ]);
+    const isLocked = LibrarySDK.useStore(s => s.workflowMetas[workflowId]?.locked ?? false);
     const [isLockPending, setIsLockPending] = useState(false);
 
     const handleLockToggle = async () => {
@@ -75,7 +72,7 @@ export const TopRightPanel = () => {
                         variant="ghost" 
                         size="icon-sm" 
                         disabled={isLockPending}
-                        onClick={() => LibrarySDK.dialogs.openListingManager(workflowId)} 
+                        onClick={() => VersionControlSDK.dialogs.openListingManager(workflowId)} 
                     >
                         <SystemIcons.Globe strokeWidth={2} className={`size-4  ${isPubliclyListed && "text-blue-500"}`}/>
                     </Button>
