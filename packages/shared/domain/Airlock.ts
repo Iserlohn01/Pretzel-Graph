@@ -98,17 +98,10 @@ export namespace Airlock {
     export function resolveGlobalFieldValues(
         workflowData: Workflow.Data,
     ): Record<Field.Id, unknown> {
-        const values = {} as Record<Field.Id, unknown>;
-        const overrides = workflowData.staticValues[Workflow.GLOBAL_FIELDS_NODE_ID] ?? {};
-
-        for (const field of workflowData.globalFields ?? []) {
-            if (field.id in overrides)
-                values[field.id] = overrides[field.id as Field.Id];
-            else if ("initialValue" in field)
-                values[field.id] = field.initialValue;
-        }
-
-        return values;
+        return Field.mapValuesToIds(
+            workflowData.globalFields ?? [],
+            workflowData.staticValues[Workflow.GLOBAL_FIELDS_NODE_ID] ?? {},
+        );
     }
 
     /**

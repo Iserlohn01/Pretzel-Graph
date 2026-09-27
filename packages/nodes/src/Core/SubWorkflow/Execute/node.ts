@@ -117,12 +117,7 @@ export class Node extends RuntimeNode<typeof Blueprint> {
 
     // The child's global fields read this run's evaluated values, falling back to their initial values.
     private injectGlobalFieldValues(): void {
-        const data = this.subExecutionCtx.workflowData;
-
-        const values = Airlock.resolveGlobalFieldValues({
-            ...data,
-            staticValues: { ...data.staticValues, [Workflow.GLOBAL_FIELDS_NODE_ID]: this.fieldValues },
-        });
+        const values = Field.mapValuesToIds(this.subExecutionCtx.workflowData.globalFields, this.fieldValues);
 
         this.subExecutionCtx.airlockAPI.setGlobalFieldValues(values);
     }
