@@ -1,8 +1,8 @@
 import type { Dependency } from "@pretzel-graph/shared/domain";
 import type { WorkbenchSDKImpl } from "../../sdk";
 import { withAsyncCommit, withCyclesRecompute, createToastPromise } from "../../utils/actions";
-import { SystemError, type Foundations, type Workflow } from "@pretzel-graph/shared/domain";
-import { loadResource } from "../dependency";
+import { Resource, SystemError, type Foundations, type Workflow } from "@pretzel-graph/shared/domain";
+import { api } from "@/SDKs/ApiInterceptorSDK";
 
 export function createFieldDependencyActions(sdk: WorkbenchSDKImpl) {
     const setDocument = sdk.setDocument;
@@ -22,7 +22,7 @@ export function createFieldDependencyActions(sdk: WorkbenchSDKImpl) {
             }
 
             const promise = createToastPromise<{ dependency: Dependency.Value }>(
-                loadResource(ref),
+                Resource.API.load(api, ref),
                 {
                     loading: "Loading workflow…",
                     success: "Workflow attached",
