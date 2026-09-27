@@ -7,14 +7,16 @@ export abstract class BaseSDK<T_State> {
 
     public abstract readonly useStore: BaseSDK.Store<T_State>
 
+    public readonly query: object = {}
+
     /** Clear session-scoped state and runtime resources when authentication ends. */
     public cleanup(): void { }
 
     public useWith = <Selected, const Queries extends readonly BaseSDK.Query[]>(
         selector: (state: T_State) => Selected,
-        queries: Queries,
+        queries: (query: this['query']) => Queries,
     ) => {
-        const results = useQueries({ queries }) as BaseSDK.QueryResults<Queries>
+        const results = useQueries({ queries: queries(this.query) }) as BaseSDK.QueryResults<Queries>
 
         const selected = this.useStore(selector)
 

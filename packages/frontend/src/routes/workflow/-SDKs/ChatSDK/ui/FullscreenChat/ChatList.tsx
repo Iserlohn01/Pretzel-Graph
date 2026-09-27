@@ -7,7 +7,7 @@ const ChatList = () => {
     const { workflowid } = useParams({ from: '/workflow/$workflowid' })
     const workflowId = workflowid as Workflow.Id
 
-    const [currentChatId, [request]] = ChatSDK.useWith((s) => s.currentChatId, [ChatSDK.query.list(workflowId)])
+    const [currentChatId, [request]] = ChatSDK.useWith((s) => s.currentChatId, (q) => [q.list(workflowId)])
 
     return (
         <Conversation.ThreadList

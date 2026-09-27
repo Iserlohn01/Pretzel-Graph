@@ -6,8 +6,9 @@ import { Principal } from '@/domain/Principal';
 import { Repository, Transactional } from '@/db/repository';
 import { ZodReturn } from '../../decorators/database';
 import { sql } from 'kysely';
+import { RELEASE } from '@/utils/release';
 
-export const META_COLUMNS = ['id', 'workflow_id', 'version', 'name', 'description', 'workflow_meta', 'is_deployed', 'published_at'] as const;
+export const META_COLUMNS = ['id', 'workflow_id', 'version', 'name', 'description', 'workflow_meta', 'is_deployed', 'published_at', 'release'] as const;
 
 
 @Injectable()
@@ -40,6 +41,7 @@ export class VersionControlRepository extends Repository {
                 workflow_meta: Workflow.Meta.Schema.parse(workflow),
                 workflow_data: workflowData,
                 is_deployed:   false,
+                release:       RELEASE,
             })
             .returningAll()
             .executeTakeFirstOrThrow();

@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Listing, SystemError, Workflow } from '@pretzel-graph/shared/domain';
 import { CloudService } from '../Cloud/cloud.service';
+import { RELEASE } from '@/utils/release';
+
+// Every read that serves a graph asks for the version this release can run.
+const RELEASE_QUERY = `release=${encodeURIComponent(RELEASE)}`;
 
 // The listing registry: open reads, token-bearing writes, reached through CloudService.
 @Injectable()
@@ -18,7 +22,7 @@ export class ListingRegistry {
 
 
     public async get(id: Listing.Id): Promise<Listing | null> {
-        const body = await this.read(`/api/listings/${id}`, { allowNotFound: true });
+        const body = await this.read(`/api/listings/${id}?${RELEASE_QUERY}`, { allowNotFound: true });
 
         if (!body)
             return null;
@@ -30,7 +34,7 @@ export class ListingRegistry {
         if (ids.length === 0)
             return {};
 
-        const body = await this.read(`/api/listings/updates?ids=${ids.join(',')}`);
+        const body = await this.read(`/api/listings/updates?ids=${ids.join(',')}&${RELEASE_QUERY}`);
 
         return Listing.API.Updates.Response.parse(body).updates;
     }

@@ -46,7 +46,7 @@ export class LibrarySDKImpl extends BaseSDK<LibrarySDK.State> {
     public readonly selectors: LibrarySDK.Selectors = _createLibrarySelectors_(this)
     public readonly actions: LibrarySDK.Actions = _createLibraryActions_(this)
 
-    public readonly query = {
+    public override readonly query = {
         bootstrap: {
             queryKey: ['library', 'bootstrap'] as const,
             queryFn: () => this.actions.bootstrap.get(),

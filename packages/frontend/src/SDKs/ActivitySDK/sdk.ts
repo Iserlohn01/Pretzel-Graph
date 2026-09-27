@@ -38,7 +38,7 @@ export class ActivitySDKImpl extends BaseSDK<ActivitySDK.State> {
 
     public readonly actions: ActivitySDK.Actions = _createActivityActions_(this)
 
-    public readonly query = {
+    public override readonly query = {
         bootstrap: {
             queryKey:  ['activity', 'bootstrap'] as const,
             queryFn:   () => this.actions.bootstrap(),

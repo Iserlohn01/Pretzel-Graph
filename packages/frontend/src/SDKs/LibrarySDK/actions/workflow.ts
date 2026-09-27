@@ -10,16 +10,12 @@ export type WorkflowActions = {
     setLock: (id: Workflow.Id, locked: boolean) => Promise<Library.API.Workflow.Update.Response>;
     setHidden: (id: Workflow.Id, hidden: boolean) => Promise<Library.API.Workflow.Update.Response>;
     move: (id: Workflow.Id, folderId: Library.Folder.Id) => Promise<Library.API.Workflow.Update.Response>;
-    listPublicWorkflow: (id: Workflow.Id) => Promise<Library.API.Workflow.ListPublic.Response>;
-    unlistPublicWorkflow: (id: Workflow.Id) => Promise<void>;
-    __removeListingId: (id: Workflow.Id) => void;
     delete: (id: Workflow.Id) => Promise<Library.API.Workflow.Remove.Response>;
     duplicate: (id: Workflow.Id) => Promise<Library.API.Workflow.Duplicate.Response>;
 };
 
-// Only the bootstrap carries listing_id; every other response leaves it as it was.
 export function putMeta(s: LibrarySDK.State, meta: Library.WorkflowMeta) {
-    s.workflowMetas[meta.id] = { ...meta, listing_id: meta.listing_id ?? s.workflowMetas[meta.id]?.listing_id ?? null };
+    s.workflowMetas[meta.id] = meta;
 }
 
 export function createWorkflowActions(sdk: LibrarySDKImpl) {
@@ -67,30 +63,6 @@ export function createWorkflowActions(sdk: LibrarySDKImpl) {
             setState((s) => { putMeta(s, data); });
             rebuildTree(sdk);
             return data;
-        },
-
-        __removeListingId: (id) => {
-            setState((s) => {
-                if (s.workflowMetas[id])
-                    s.workflowMetas[id].listing_id = null;
-            });
-        },
-
-        listPublicWorkflow: async (id) => {
-            const data = await Library.API.Workflow.listPublicWorkflow(api, { workflowId: id });
-            setState((s) => {
-                if (s.workflowMetas[id])
-                    s.workflowMetas[id].listing_id = data.listingId;
-            });
-            return data;
-        },
-
-        unlistPublicWorkflow: async (id) => {
-            await Library.API.Workflow.unlistPublicWorkflow(api, { workflowId: id });
-            setState((s) => {
-                if (s.workflowMetas[id])
-                    s.workflowMetas[id].listing_id = null;
-            });
         },
 
         delete: async (id) => {

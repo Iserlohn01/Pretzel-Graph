@@ -11,7 +11,7 @@ const SelectChat = () => {
   const { workflowid } = useParams({ from: '/workflow/$workflowid' })
   const workflowId = workflowid as Workflow.Id
 
-  const [, [request]] = ChatSDK.useWith(() => null, [ChatSDK.query.list(workflowId)])
+  const [, [request]] = ChatSDK.useWith(() => null, (q) => [q.list(workflowId)])
 
   const chats = request.data ?? []
 

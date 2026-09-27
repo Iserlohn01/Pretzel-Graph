@@ -26,10 +26,10 @@ export const Content: React.FC<Props> = ({ scrollContainerClassName, size = 'def
 
     const [treeData, [request]] = LibrarySDK.useWith(
         (s) => s.treeData,
-        [{ ...LibrarySDK.query.bootstrap, enabled: isQueryReady }],
+        (q) => [{ ...q.bootstrap, enabled: isQueryReady }],
     )
 
-    VersionControlSDK.useWith(() => null, [{ ...VersionControlSDK.query.deployments, enabled: isQueryReady }])
+    VersionControlSDK.useWith(() => null, (q) => [{ ...q.deployments, enabled: isQueryReady }])
 
     const query = treeSearchQuery.trim().toLowerCase()
 

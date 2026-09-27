@@ -25,7 +25,7 @@ export class VaultSDKImpl extends BaseSDK<VaultSDK.State> {
 
     public readonly actions: VaultSDK.Actions = _createVaultActions_(this)
 
-    public readonly query = {
+    public override readonly query = {
         instances: {
             queryKey:  ['vault', 'instances'] as const,
             queryFn:   () => this.actions.instance.list(),

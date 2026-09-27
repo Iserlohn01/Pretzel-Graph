@@ -1,7 +1,7 @@
 import { immer } from "zustand/middleware/immer";
 import { BaseSDK } from "@pretzel-graph/standard-ui/SDKs/Base";
 import { SDK } from "@pretzel-graph/standard-ui/SDKs/SDKManager";
-import { VersionControl, Workflow } from "@pretzel-graph/shared/domain";
+import { VersionControl, Workflow, type Listing } from "@pretzel-graph/shared/domain";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 import { createVersionControlSDKActions, type VersionControlSDKActions } from "./actions";
@@ -19,6 +19,7 @@ export class VersionControlSDKImpl extends BaseSDK<VersionControlSDK.State> {
     public readonly useStore: BaseSDK.Store<VersionControlSDK.State> = createWithEqualityFn(
         immer<VersionControlSDK.State>(() => ({
             deployments: {},
+            listings: {},
             selectors: versionControlSDKSelectors,
             reducers: createVersionControlSDKReducers(),
         })),
@@ -27,7 +28,7 @@ export class VersionControlSDKImpl extends BaseSDK<VersionControlSDK.State> {
 
     public readonly actions: VersionControlSDK.Actions = createVersionControlSDKActions(this)
 
-    public readonly query = {
+    public override readonly query = {
         publications: (workflowId: Workflow.Id) => ({
             queryKey:  ['version-control', 'publications', workflowId] as const,
             queryFn:   () => this.actions.list(workflowId),
@@ -44,6 +45,11 @@ export class VersionControlSDKImpl extends BaseSDK<VersionControlSDK.State> {
             queryFn:   () => this.actions.getDeployment(workflowId),
             staleTime: DEPLOYMENTS_STALE_TIME,
         }),
+        listings: {
+            queryKey:  ['version-control', 'listings'] as const,
+            queryFn:   () => this.actions.listListings(),
+            staleTime: DEPLOYMENTS_STALE_TIME,
+        },
     }
 
     public readonly dialogs: VersionControlSDK.Dialogs = _createVersionControlDialogs_()
@@ -54,6 +60,8 @@ export const VersionControlSDK = SDK.get<VersionControlSDKImpl>("VersionControl"
 export namespace VersionControlSDK {
     export type State = {
         deployments: Record<Workflow.Id, VersionControl.Publication.Meta>
+        /** Deployed workflows shared on the public registry; absent means not listed. */
+        listings: Record<Workflow.Id, Listing.Id>
         selectors: VersionControlSDKSelectors
         reducers: VersionControlSDKReducers
     }

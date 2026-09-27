@@ -17,12 +17,12 @@ function ExecutionsRoute() {
     const [workflowId, setWorkflowId] = useState<Workflow.Id>()
 
     return (
-        <ScrollArea.Root className='h-screen [mask-image:linear-gradient(to_bottom,transparent,black_60px)]'>
+        <ScrollArea.Root className='h-screen -ml-(--sidebar-width) [mask-image:linear-gradient(to_bottom,transparent,black_80px)]'>
             <div className='flex flex-col pt-[60px] h-full gap-4'>
-                <div className='w-full pl-4 pb-4 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-4rem),transparent)]'>
+                <div className='w-full pl-[calc(var(--sidebar-width)+1rem)] pb-4 overflow-x-auto'>
                     <ActivityKanban />
                 </div>
-                <div className='pr-10'>
+                <div className='pl-(--sidebar-width) pr-10'>
                     <div className='flex flex-row w-full'>
                         <Button variant={"input"} onClick={() => LibrarySDK.dialogs.openLibrarySelector({ accept: 'workflow', onSelect: (r) => setWorkflowId(r.id) })} className='w-fit'>
                             Select a Workflow

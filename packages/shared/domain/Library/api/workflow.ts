@@ -1,42 +1,9 @@
 import { z } from "zod"
 import type { AxiosInstance } from "axios"
 import { Workflow as WorkflowD } from "../../Workflow"
-import { Listing } from "../../Listing"
 import { Folder as FolderD } from "../folder"
 
 export namespace Workflow {
-    export namespace ListPublic {
-        export const Request = z.object({
-            workflowId: WorkflowD.Id,
-        })
-        export type Request = z.infer<typeof Request>
-
-        export const Response = z.object({
-            listingId: Listing.Id,
-        })
-        export type Response = z.infer<typeof Response>
-    }
-
-    export async function listPublicWorkflow(api: AxiosInstance, req: ListPublic.Request): Promise<ListPublic.Response> {
-        const { data } = await api.post<ListPublic.Response>(`/api/library/workflows/${req.workflowId}/list-public`, {})
-        return data
-    }
-
-    export namespace UnlistPublic {
-        export const Request = z.object({
-            workflowId: WorkflowD.Id,
-        })
-        export type Request = z.infer<typeof Request>
-
-        export const Response = z.object({})
-        export type Response = z.infer<typeof Response>
-    }
-
-    export async function unlistPublicWorkflow(api: AxiosInstance, req: UnlistPublic.Request): Promise<UnlistPublic.Response> {
-        const { data } = await api.post<UnlistPublic.Response>(`/api/library/workflows/${req.workflowId}/unlist-public`, {})
-        return data
-    }
-
     export namespace Create {
         export const Request = z.object({
             folder_id: FolderD.Id,

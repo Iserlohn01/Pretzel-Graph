@@ -4,10 +4,9 @@ import { SystemIcons } from '@pretzel-graph/standard-ui/icons'
 import { SystemError, Workflow } from '@pretzel-graph/shared/domain'
 import { toast } from 'sonner'
 import Tipped from '@/components/Tipped'
-import { VersionControlSDK } from '@/SDKs/VersionControlSDK/sdk'
-import { LibrarySDK } from '../sdk'
+import { VersionControlSDK } from '../sdk'
 
-export function openListPublicWorkflowDialog(workflowId: Workflow.Id) {
+export function openListWorkflowDialog(workflowId: Workflow.Id) {
     const dialogId = `list-workflow-${workflowId}`
 
     DialogSDK.actions.push(dialogId, (props) => (
@@ -17,7 +16,7 @@ export function openListPublicWorkflowDialog(workflowId: Workflow.Id) {
             onApprove={async () => {
                 DialogSDK.actions.pop(dialogId)
                 try {
-                    await LibrarySDK.actions.workflow.listPublicWorkflow(workflowId)
+                    await VersionControlSDK.actions.listWorkflow(workflowId)
                     toast.success('Workflow is now public')
                 } catch (err) {
                     toast.error(SystemError.fromUnknown(err).message)
@@ -36,7 +35,7 @@ export function openListPublicWorkflowDialog(workflowId: Workflow.Id) {
     ))
 }
 
-export function openUnlistPublicWorkflowDialog(workflowId: Workflow.Id) {
+export function openUnlistWorkflowDialog(workflowId: Workflow.Id) {
     const dialogId = `unlist-workflow-${workflowId}`
 
     DialogSDK.actions.push(dialogId, (props) => (
@@ -46,7 +45,7 @@ export function openUnlistPublicWorkflowDialog(workflowId: Workflow.Id) {
             onApprove={async () => {
                 DialogSDK.actions.pop(dialogId)
                 try {
-                    await LibrarySDK.actions.workflow.unlistPublicWorkflow(workflowId)
+                    await VersionControlSDK.actions.unlistWorkflow(workflowId)
                     toast.success('Workflow is now private')
                 } catch (err) {
                     toast.error(SystemError.fromUnknown(err).message)
@@ -56,9 +55,9 @@ export function openUnlistPublicWorkflowDialog(workflowId: Workflow.Id) {
         >
             <div className='font-semibold'>Make this workflow private?</div>
             <div className='text-sm text-muted-foreground mt-1'>
-                The public copy is removed and nobody new can attach it. Workflows
-                that already use it keep their embedded copy, but no longer receive
-                updates. Making it public again creates a new listing under a new id.
+                The listing is hidden and nobody new can attach it. Workflows that
+                already use it keep their embedded copy, but receive no updates while
+                it is private. Making it public again resumes the same listing id.
             </div>
         </DialogSDK.AlertTemplate>
     ))
@@ -74,7 +73,7 @@ export function openListingManagerDialog(workflowId: Workflow.Id) {
             contentClassName='w-[400px]'
             sidebarRenderer={() => (
                 <DialogSDK.SplitTemplate.Header>
-                    <DialogSDK.SplitTemplate.Icon icon={SystemIcons.Globe} />
+                    <DialogSDK.SplitTemplate.Icon icon={SystemIcons.NetworkProxy} />
                     <DialogSDK.SplitTemplate.Title>Public Listing</DialogSDK.SplitTemplate.Title>
                     <DialogSDK.SplitTemplate.Description>
                         Share this workflow on the public repository, where anyone with its listing id can embed the active version as a sub-workflow.
@@ -90,10 +89,9 @@ export function openListingManagerDialog(workflowId: Workflow.Id) {
 }
 
 const ListingManagerContent = ({ workflowId, dialogId }: { workflowId: Workflow.Id; dialogId: string }) => {
-    const listingId = LibrarySDK.useStore(s => s.workflowMetas[workflowId]?.listing_id ?? null)
-    const [isDeployed] = VersionControlSDK.useWith(
-        (s) => s.selectors.getDeployed(s, workflowId) !== null,
-        [VersionControlSDK.query.deployment(workflowId)],
+    const [[isDeployed, listingId]] = VersionControlSDK.useWith(
+        (s) => [s.selectors.getDeployed(s, workflowId) !== null, s.selectors.getListingId(s, workflowId)] as const,
+        (q) => [q.deployment(workflowId), q.listings],
     )
 
     const isListed = listingId !== null
@@ -101,9 +99,9 @@ const ListingManagerContent = ({ workflowId, dialogId }: { workflowId: Workflow.
 
     const handleChange = (next: boolean) => {
         if (next)
-            openListPublicWorkflowDialog(workflowId)
+            VersionControlSDK.dialogs.openListWorkflow(workflowId)
         else
-            openUnlistPublicWorkflowDialog(workflowId)
+            VersionControlSDK.dialogs.openUnlistWorkflow(workflowId)
     }
 
     const handleCopy = async () => {

@@ -38,7 +38,7 @@ export class GatewaySDKImpl extends BaseSDK<GatewaySDK.State> {
 
     public readonly actions: GatewaySDK.Actions = _createGatewayActions_(this)
 
-    public readonly query = {
+    public override readonly query = {
         connections: {
             queryKey:  ['gateway', 'connections'] as const,
             queryFn:   () => this.actions.connection.list(),

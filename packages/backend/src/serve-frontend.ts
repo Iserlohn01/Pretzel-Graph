@@ -14,7 +14,7 @@ function publicConfig(): Record<string, string | undefined> {
     return {
         apiUrl:              process.env.PUBLIC_API_URL ?? '/',
         authUrl:             process.env.PUBLIC_AUTH_URL,
-        cloudUrl:            process.env.PUBLIC_CLOUD_URL,
+        cloudUrl:            process.env.PUBLIC_CLOUD_PORTAL_URL,
         sessionCookieDomain: process.env.PUBLIC_SESSION_COOKIE_DOMAIN,
     };
 }

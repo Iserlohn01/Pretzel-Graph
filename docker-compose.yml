@@ -99,7 +99,7 @@ services:
       # Handed to the page at runtime; the browser reaches the issuer here.
       PUBLIC_AUTH_URL: ${GOTRUE_EXTERNAL_URL:-http://localhost:9999}
       # Base address for the sidebar link back. Empty leaves the link out.
-      PUBLIC_CLOUD_URL: ${PUBLIC_CLOUD_URL:-}
+      PUBLIC_CLOUD_PORTAL_URL: ${PUBLIC_CLOUD_PORTAL_URL:-}
     ports:
       - "${APP_PORT:-8080}:3001"
 

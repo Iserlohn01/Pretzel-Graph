@@ -42,7 +42,7 @@ const DependencyTypeDialog = ({ workflowId, onSelect }: DependencyTypeDialogProp
 
     const [deployedPublication, [request]] = VersionControlSDK.useWith(
         (s) => s.deployments[workflowId],
-        [VersionControlSDK.query.deployment(workflowId)],
+        (q) => [q.deployment(workflowId)],
     )
 
     const hasPublication = Boolean(deployedPublication)

@@ -1,4 +1,5 @@
 import { LibrarySDK } from '@/SDKs/LibrarySDK/sdk'
+import { VersionControlSDK } from '@/SDKs/VersionControlSDK/sdk'
 import { SystemIcons } from '@pretzel-graph/standard-ui/icons'
 import { ContextMenu } from '@pretzel-graph/standard-ui/foundations'
 import { Workbench } from '@pretzel-graph/shared/domain'
@@ -13,6 +14,11 @@ interface Props {
 }
 
 export function WorkflowMenuItems({ workflow, onOpen }: Props) {
+    const [listingId] = VersionControlSDK.useWith(
+        (s) => s.selectors.getListingId(s, workflow.id),
+        (q) => [q.listings],
+    )
+
     return (
         <>
             {onOpen && (
@@ -56,8 +62,8 @@ export function WorkflowMenuItems({ workflow, onOpen }: Props) {
                     <ContextMenu.Item onClick={() => copy(`${window.location.origin}/workflow/${workflow.id}`, 'Link copied')}>
                         Link
                     </ContextMenu.Item>
-                    {workflow.listing_id && (
-                        <ContextMenu.Item onClick={() => copy(workflow.listing_id!, 'Listing id copied')}>
+                    {listingId && (
+                        <ContextMenu.Item onClick={() => copy(listingId, 'Listing id copied')}>
                             Listing ID
                         </ContextMenu.Item>
                     )}

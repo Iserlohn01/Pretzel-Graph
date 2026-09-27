@@ -15,15 +15,7 @@ export class LibraryService {
         get: async (
             principal: Principal.User,
         ): Promise<Library.API.Bootstrap.Get.Response> => {
-            const [bootstrap, listingIdByWorkflowId] = await Promise.all([
-                this.libraryRepository.bootstrap.get(principal),
-                this.listings.getOwnedIds(),
-            ]);
-
-            for (const meta of bootstrap.workflow_metas)
-                meta.listing_id = listingIdByWorkflowId[meta.id] ?? null;
-
-            return bootstrap;
+            return this.libraryRepository.bootstrap.get(principal);
         },
     };
 

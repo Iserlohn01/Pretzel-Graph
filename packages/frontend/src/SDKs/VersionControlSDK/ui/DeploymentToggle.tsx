@@ -10,7 +10,7 @@ export function DeploymentToggle({ size = "icon-sm", iconClassName }: { size?: "
     const workflowId = WorkbenchSDK.useDocument(d => d.workflowId);
     const [deployedPublication, [publicationsQuery]] = VersionControlSDK.useWith(
         (s) => s.selectors.getDeployed(s, workflowId),
-        [VersionControlSDK.query.publications(workflowId), VersionControlSDK.query.deployment(workflowId)],
+        (q) => [q.publications(workflowId), q.deployment(workflowId)],
     );
     const latestPublication = publicationsQuery.data?.publications[0] ?? null;
 
