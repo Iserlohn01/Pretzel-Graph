@@ -3,6 +3,7 @@ import { RuntimeNode } from "@pretzel-graph/node-sdk";
 import { InferIncoming, InferOutputs } from "@pretzel-graph/node-sdk";
 import { Blueprint } from "./blueprint";
 import { Airlock, Execution, Workflow } from "@pretzel-graph/shared/domain";
+import { Field } from "@pretzel-graph/shared/domain/Foundations/Field";
 import { ExecutionContext, TurboGraph } from "@pretzel-graph/worker";
 import { System } from "@pretzel-graph/shared/system";
 import { Node as ExposeInputPortNode } from "../ExposeInputPort/node";
