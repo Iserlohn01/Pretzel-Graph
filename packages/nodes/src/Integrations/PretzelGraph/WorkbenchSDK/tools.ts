@@ -49,7 +49,7 @@ const operation = z.discriminatedUnion("op", [
         blueprintId:  z.string(),
         position:     position().optional().describe("Omit to place right of the rightmost node."),
         staticValues: z.record(z.unknown()).optional()
-            .describe("Keyed by field id or input port id. Reconcile fields are rejected; set them with a field.set operation."),
+            .describe("Keyed by field id or input port id. Reconcile fields are rejected; set them with a field.set operation. A field that starts in expression mode takes one JavaScript expression, e.g. $igniter.chat_id or `Event: ${JSON.stringify($in.event)}`; never {{ }}."),
     }).describe("Add a node. Its id is in the results, so it can't be referenced in the same call."),
 
     z.object({ op: z.literal("node.delete"), nodeId: nodeId() })
@@ -78,7 +78,7 @@ const operation = z.discriminatedUnion("op", [
         nodeId:  nodeId(),
         fieldId: z.string(),
         value:   z.unknown()
-            .describe("Same shape as the field's value in workbench_get_node. In expression mode, the expression as a string. Not type-checked here."),
+            .describe("Same shape as the field's value in workbench_get_node. In expression mode, one JavaScript expression as a string, e.g. $igniter.chat_id or `Event: ${JSON.stringify($in.event)}`; never {{ }}. Not type-checked here."),
         mode:    z.enum(["static", "expression"]).optional().describe("Omit to keep the current mode."),
     }).describe("Set a field's value, optionally switching its mode. A reshaping field returns the ports added and removed and the edges dropped."),
 

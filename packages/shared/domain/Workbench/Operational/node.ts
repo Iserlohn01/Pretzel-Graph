@@ -3,6 +3,7 @@ import { Port } from "../../Foundations/Port"
 import { Workflow } from "../../Workflow"
 import { Document } from "../Document"
 import { Summary } from "./summary"
+import { assertNoTemplating } from "./field"
 import { ID_PATTERN, type CreateNodeRequest, type InputPortSpec, type Position } from "./types"
 import type { OperationalClient } from "."
 
@@ -72,6 +73,9 @@ export class NodeOperations {
 
             if (!field && !inputs.has(id))
                 throw new Error(`Unknown field ${id}; the base has ${[...fields.keys()].join(", ") || "no fields"}`)
+
+            if (field && Foundations.Field.usesExpression(field))
+                assertNoTemplating(field.id, request.staticValues?.[id])
         }
 
         const position = request.position ?? placeNext(d)

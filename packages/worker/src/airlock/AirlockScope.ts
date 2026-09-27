@@ -102,6 +102,14 @@ export class AirlockScope implements Airlock.API {
         }
     }
 
+    public setGlobalFieldValues(values: Record<string, unknown>): void {
+        this.context.evalClosureSync(
+            `${Airlock.Globals.WORKFLOW}.staticValues[${JSON.stringify(Workflow.GLOBAL_FIELDS_NODE_ID)}] = $0`,
+            [values],
+            { arguments: { copy: true } },
+        );
+    }
+
     private runScript(script: ivm.Script): unknown {
         try {
             return script.runSync(this.context, { timeout: this.timeoutMs, copy: true });

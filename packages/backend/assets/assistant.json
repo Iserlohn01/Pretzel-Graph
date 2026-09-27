@@ -209,8 +209,8 @@
         }
       },
       "viewport": {
-        "x": 118.28943170586854,
-        "y": -95.25501185033863,
+        "x": -60.71056829413146,
+        "y": -247.25501185033863,
         "zoom": 0.884775025487433
       },
       "icon_color": null,
@@ -219,11 +219,11 @@
     "dependencies": {
       "listing:115ed000-8f61-4fda-ad99-ba665c27676f": {
         "kind": "listing",
-        "id": "17221343-fb11-47b6-b824-1b59f5cec7cc",
+        "id": "b045d6d0-1b4b-4842-886c-4b3fa9b245c8",
         "workflow_id": "115ed000-8f61-4fda-ad99-ba665c27676f",
-        "version": 2,
-        "name": "v1.1",
-        "published_at": "2026-09-26T13:03:16.514Z",
+        "version": 3,
+        "name": "v1.2",
+        "published_at": "2026-09-27T13:32:32.520Z",
         "display_name": "Chat Agent",
         "icon": "Bot",
         "accent": "port-LanguageModel",
@@ -384,6 +384,7 @@
           },
           "fieldExpressions": {
             "Pretzel.Agent-rqyy0": {
+              "system_message": true,
               "output_all_messages": true
             }
           },

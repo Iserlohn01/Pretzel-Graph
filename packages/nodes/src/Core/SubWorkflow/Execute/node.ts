@@ -76,8 +76,6 @@ export class Node extends RuntimeNode<typeof Blueprint> {
             },
         };
 
-        this.injectGlobalFieldValues(childWorkflowData);
-
         this.subExecutionCtx = await this.subEnvironment.compile(
             subWorkflowId,
             childWorkflowData,
@@ -91,6 +89,7 @@ export class Node extends RuntimeNode<typeof Blueprint> {
         incoming: InferIncoming<typeof Blueprint>,
     ): Promise<InferOutputs<typeof Blueprint>> {
 
+        this.injectGlobalFieldValues();
         this.injectInputNodeValues(incoming);
 
         try {
@@ -116,8 +115,16 @@ export class Node extends RuntimeNode<typeof Blueprint> {
         return this.aggregatedMetrics;
     }
 
-    private injectGlobalFieldValues(childWorkflowData: Workflow.Data): void {
-        childWorkflowData.staticValues[Workflow.GLOBAL_FIELDS_NODE_ID] = this.fieldValues;
+    // The child's global fields read this run's evaluated values, falling back to their initial values.
+    private injectGlobalFieldValues(): void {
+        const data = this.subExecutionCtx.workflowData;
+
+        const values = Airlock.resolveGlobalFieldValues({
+            ...data,
+            staticValues: { ...data.staticValues, [Workflow.GLOBAL_FIELDS_NODE_ID]: this.fieldValues },
+        });
+
+        this.subExecutionCtx.airlockAPI.setGlobalFieldValues(values);
     }
 
     private injectInputNodeValues(incoming: InferIncoming<typeof Blueprint>): void {

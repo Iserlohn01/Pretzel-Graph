@@ -8,6 +8,17 @@ import type { OperationalClient } from "."
 
 const { withCyclesRecompute } = Document
 
+const QUOTED     = /(["'`])(?:\\[\s\S]|(?!\1)[^\\])*\1/g
+const TEMPLATING = /\{\{[\s\S]*?\}\}/
+
+/** Rejects `{{ }}` templating outside string and template literals in an expression. */
+export function assertNoTemplating(fieldId: Foundations.Field.Id, value: unknown): void {
+    if (typeof value !== "string" || !TEMPLATING.test(value.replace(QUOTED, `""`)))
+        return
+
+    throw new Error(`Field ${fieldId}: {{ }} is not expression syntax. An expression is one JavaScript expression, e.g. $in.text, or text as a template literal: \`Hello \${$in.name}\`. For fixed text, switch the field to static.`)
+}
+
 export class FieldOperations {
 
     constructor(private readonly client: OperationalClient) {}
@@ -33,6 +44,9 @@ export class FieldOperations {
             const field = d.selectors.field.get(d, nodeId, fieldId)
             if (!field)
                 throw new Error(`Field ${fieldId} not found on node ${nodeId}`)
+
+            if (this.getMode(d, nodeId, field) === "expression")
+                assertNoTemplating(fieldId, value)
 
             // A reconciling field reshapes the node; what that added, removed, and disconnected
             // comes back so the caller can see the cost of the change.

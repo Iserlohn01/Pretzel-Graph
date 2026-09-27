@@ -156,5 +156,7 @@ export namespace Airlock {
         executeAsyncCode(code: Source.Code, nodeId: Workflow.Node.Id, incoming: unknown): Promise<unknown>
         // Deep-copy a persistent scope global out to the host (e.g. `$metrics` after a sub-run).
         readGlobal<T = unknown>(name: string): T | undefined
+        // Replaces the values `$globalFields` reads in this scope.
+        setGlobalFieldValues(values: Record<Field.Id, unknown>): void
     }
 }
