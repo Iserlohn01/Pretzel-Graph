@@ -27,34 +27,14 @@ export class NodeOperations {
 
     constructor(private readonly client: OperationalClient) {}
 
-    public get(nodeId: Workflow.Node.Id): Summary.NodeDetail {
-        const d    = this.client.document
-        const node = d.data.nodes[nodeId]
+    public get(nodeId: Workflow.Node.Id): Workflow.Node.Hydrated {
+        const d        = this.client.document
+        const hydrated = d.selectors.node.hydrate(d, nodeId)
 
-        if (!node)
+        if (!hydrated)
             throw new Error(`Node ${nodeId} not found`)
 
-        const shape = d.cache.resolvedShape[nodeId]
-
-        return {
-            node,
-            fields:         shape?.fields  ?? [],
-            inputs:         shape?.inputs  ?? [],
-            outputs:        shape?.outputs ?? [],
-            staticValues:   d.selectors.node.getStaticValues(d, nodeId),
-            fieldModes:     Object.fromEntries((shape?.fields ?? []).map(field => [field.id, {
-                mode:       this.client.field.getMode(d, nodeId, field),
-                switchable: Foundations.Field.canSwitchMode(field),
-            }])),
-            credentials:    d.selectors.credential.getTemplates(d, nodeId).map(template => ({
-                templateId:   template.id,
-                templateName: template.displayName,
-                optional:     template.optional ?? false,
-                instanceId:   d.selectors.credential.getInstance(d, nodeId, template.id),
-            })),
-            connectedEdges: Summary.connectedEdges(d, nodeId),
-            issues:         d.issues.nodes[nodeId] ?? null,
-        }
+        return hydrated
     }
 
     // A new node starts on its base branch with plain values only. A reconciling field

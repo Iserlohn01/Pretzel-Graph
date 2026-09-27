@@ -29,7 +29,7 @@ export const Blueprint = defineBlueprint({
         fields: [
             defineField.Json("filters", "Filters", {
                 initialValue: {},
-                tooltip: "Optional filters: ids, displayName, drawerIds, toolCompatible, proxyCompatible, derivable, fieldIds, inputVariants, outputVariants, limit.",
+                tooltip: "Optional filters: ids, displayName, drawerIds, toolCompatible, proxyCompatible, isDerivable, isIgniter, passive, fieldIds, inputVariants, outputVariants, limit.",
             }),
         ],
     },

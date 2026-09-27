@@ -26,6 +26,8 @@ export interface NodeSelectors {
     getFields: (document: Document, nodeId: Workflow.Node.Id) => readonly Foundations.Field[]
     getBlueprint: (document: Document, nodeId: Workflow.Node.Id) => Blueprint | null
     getUI: (document: Document, nodeId: Workflow.Node.Id) => NodeUI
+    /** The node with its blueprint, resolved fields and ports, and connected inputs; null when it or its blueprint is missing. */
+    hydrate: (document: Document, nodeId: Workflow.Node.Id) => Workflow.Node.Hydrated | null
     /** Nodes the run can elect as its entry point. Ids, not objects, so `shallow` holds. */
     getIgniteableNodes: (document: Document) => Workflow.Node.Id[]
 
@@ -130,6 +132,27 @@ export const nodeSelectors: NodeSelectors = {
             isMinimized: node?.ui?.isMinimized ?? false,
             isFlipped:   node?.ui?.isFlipped   ?? false,
         };
+    },
+
+    hydrate: (d, nodeId) => {
+        const node      = d.data.nodes[nodeId];
+        const blueprint = d.selectors.blueprint.forNode(d, nodeId);
+
+        if (!node || !blueprint)
+            return null;
+
+        const { addedInputs: _inputs, addedOutputs: _outputs, addedFields: _fields, ...rest } = node;
+        const shape = d.cache.resolvedShape[nodeId];
+
+        return {
+            ...rest,
+            blueprint,
+            fields:         shape?.fields  ?? [],
+            inputs:         shape?.inputs  ?? [],
+            outputs:        shape?.outputs ?? [],
+            ui:             d.selectors.node.getUI(d, nodeId),
+            connectedPorts: d.selectors.node.ports.getConnected(d, nodeId),
+        } as Workflow.Node.Hydrated;
     },
 
     dependency: nodeDependencySelectors,
