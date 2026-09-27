@@ -74,7 +74,7 @@ export function openListingManagerDialog(workflowId: Workflow.Id) {
             contentClassName='w-[400px]'
             sidebarRenderer={() => (
                 <DialogSDK.SplitTemplate.Header>
-                    <DialogSDK.SplitTemplate.Icon icon={SystemIcons.Globe} />
+                    <DialogSDK.SplitTemplate.Icon icon={SystemIcons.NetworkProxy} />
                     <DialogSDK.SplitTemplate.Title>Public Listing</DialogSDK.SplitTemplate.Title>
                     <DialogSDK.SplitTemplate.Description>
                         Share this workflow on the public repository, where anyone with its listing id can embed the active version as a sub-workflow.
@@ -101,9 +101,9 @@ const ListingManagerContent = ({ workflowId, dialogId }: { workflowId: Workflow.
 
     const handleChange = (next: boolean) => {
         if (next)
-            openListPublicWorkflowDialog(workflowId)
+            LibrarySDK.dialogs.openListPublicWorkflow(workflowId)
         else
-            openUnlistPublicWorkflowDialog(workflowId)
+            LibrarySDK.dialogs.openUnlistPublicWorkflow(workflowId)
     }
 
     const handleCopy = async () => {
