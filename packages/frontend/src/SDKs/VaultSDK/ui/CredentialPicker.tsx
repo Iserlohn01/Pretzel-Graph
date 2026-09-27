@@ -22,7 +22,7 @@ export const CredentialPicker = memo(
     ({ credentialTemplate, instanceId, setInstance, issue = false, showTitle = true }: Props) => {
         const [instances] = VaultSDK.useWith(
             (s) => s.selectors.byTemplateId(s, credentialTemplate.id),
-            [VaultSDK.query.instances],
+            (q) => [q.instances],
         );
 
         const openAddDialog = () => {

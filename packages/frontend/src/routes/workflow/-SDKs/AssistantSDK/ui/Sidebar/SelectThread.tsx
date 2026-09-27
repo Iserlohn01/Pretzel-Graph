@@ -7,7 +7,7 @@ const THREAD_SKELETONS = ['w-32', 'w-24', 'w-36', 'w-28']
 const SelectThread = () => {
     const [query, setQuery] = useState('')
 
-    const [, [request]] = AssistantSDK.useWith(() => null, [AssistantSDK.query.threads()])
+    const [, [request]] = AssistantSDK.useWith(() => null, (q) => [q.threads()])
 
     const needle  = query.trim().toLowerCase()
     const threads = (request.data ?? []).filter(thread => !needle || thread.name?.toLowerCase().includes(needle))

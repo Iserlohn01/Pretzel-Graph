@@ -14,7 +14,7 @@ export const GatewayListenerCard = ({ request, ...templateProps }: GatewayListen
 
     const [connection] = GatewaySDK.useWith(
         s => s.connections[request.connectionId],
-        [GatewaySDK.query.connections],
+        (q) => [q.connections],
     )
 
     return (

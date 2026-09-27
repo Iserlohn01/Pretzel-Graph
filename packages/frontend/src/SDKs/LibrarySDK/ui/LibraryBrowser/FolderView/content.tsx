@@ -69,16 +69,16 @@ export const Content: React.FC<Props> = ({ scrollContainerClassName, className, 
 
     const [[view, hasLibrary], [request]] = LibrarySDK.useWith(
         (s) => [s.selectors.getLibraryView(s, cwd), Library.Folder.ROOT_ID in s.folders] as const,
-        [{ ...LibrarySDK.query.bootstrap, enabled: isQueryReady }],
+        (q) => [{ ...q.bootstrap, enabled: isQueryReady }],
     )
 
-    VersionControlSDK.useWith(() => null, [{ ...VersionControlSDK.query.deployments, enabled: isQueryReady }])
+    VersionControlSDK.useWith(() => null, (q) => [{ ...q.deployments, enabled: isQueryReady }])
 
     const [connections] = GatewaySDK.useWith(
         (s) => GatewaySDK.selectors.byFolderId(s, cwd),
-        [
-            { ...GatewaySDK.query.connections, enabled: isQueryReady },
-            { ...GatewaySDK.query.definitions, enabled: isQueryReady },
+        (q) => [
+            { ...q.connections, enabled: isQueryReady },
+            { ...q.definitions, enabled: isQueryReady },
         ],
     )
 

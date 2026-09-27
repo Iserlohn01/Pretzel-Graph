@@ -24,7 +24,7 @@ export const Drawers = () => {
             return drawerIds.map(id => s.drawers[id])
 
         return Object.values(s.filteredDrawers)
-    }), [ShelfSDK.query.section(selectedSection)])
+    }), (q) => [q.section(selectedSection)])
 
     if (filteredDrawers === undefined && request.isError)
         return <DrawersError />

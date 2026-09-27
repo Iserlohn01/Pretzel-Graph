@@ -65,7 +65,7 @@ const ActivityKanban = () => {
 
     const [activity, [request]] = ActivitySDK.useWith(
         (s) => s.activity,
-        [ActivitySDK.query.bootstrap],
+        (q) => [q.bootstrap],
     )
 
     const columns = useMemo(

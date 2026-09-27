@@ -93,7 +93,7 @@ const ListingManagerContent = ({ workflowId, dialogId }: { workflowId: Workflow.
     const listingId = LibrarySDK.useStore(s => s.workflowMetas[workflowId]?.listing_id ?? null)
     const [isDeployed] = VersionControlSDK.useWith(
         (s) => s.selectors.getDeployed(s, workflowId) !== null,
-        [VersionControlSDK.query.deployment(workflowId)],
+        (q) => [q.deployment(workflowId)],
     )
 
     const isListed = listingId !== null

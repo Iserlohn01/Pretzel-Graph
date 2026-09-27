@@ -22,7 +22,7 @@ function PublicationHistory({ className, hideHeader, showCurrentChangesItem = tr
 
     const [, [versionsQuery]] = VersionControlSDK.useWith(
         () => null,
-        [VersionControlSDK.query.publications(workflowId)],
+        (q) => [q.publications(workflowId)],
     );
 
     const publications = versionsQuery.data?.publications ?? [];

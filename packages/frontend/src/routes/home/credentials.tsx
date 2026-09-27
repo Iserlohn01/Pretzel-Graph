@@ -23,7 +23,7 @@ type Group = {
 function CredentialsRoute() {
     const [instances, [instancesRequest]] = VaultSDK.useWith(
         (s) => s.credentialInstances,
-        [VaultSDK.query.instances],
+        (q) => [q.instances],
     )
 
     const templateIds = useMemo(
@@ -33,7 +33,7 @@ function CredentialsRoute() {
 
     const [templates, [templatesRequest]] = VaultSDK.useWith(
         (s) => s.credentialTemplates,
-        [VaultSDK.query.templates(templateIds)],
+        (q) => [q.templates(templateIds)],
     )
 
     const groups = useMemo<Group[]>(() => {

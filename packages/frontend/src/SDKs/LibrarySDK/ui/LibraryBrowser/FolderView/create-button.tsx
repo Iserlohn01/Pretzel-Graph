@@ -16,7 +16,7 @@ export const CreateBtn = ({ size, triggerClassName }: Props) => {
 
     const [definitions] = GatewaySDK.useWith(
         s => Object.values(s.definitions),
-        [GatewaySDK.query.definitions],
+        (q) => [q.definitions],
     )
 
     return (

@@ -24,7 +24,7 @@ const HISTORY_SKELETONS = [0, 1, 2, 3, 4, 5]
 const ExecutionHistoryPanel = () => {
 
     const workflowId = WorkbenchSDK.useDocument(d => d.workflowId);
-    const [currentExecutionId, [request]] = ExecutionSDK.useWith((s) => s.currentExecution?.id, [ExecutionSDK.query.list(workflowId)])
+    const [currentExecutionId, [request]] = ExecutionSDK.useWith((s) => s.currentExecution?.id, (q) => [q.list(workflowId)])
 
     const executionHistory = request.data ?? []
 

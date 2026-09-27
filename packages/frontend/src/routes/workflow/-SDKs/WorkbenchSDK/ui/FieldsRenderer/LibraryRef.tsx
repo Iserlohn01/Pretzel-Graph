@@ -88,7 +88,7 @@ function useTarget(value: Library.Ref | null, definitionId?: Foundations.Field.L
             value?.kind === 'connection' ? s.connections[value.id] : undefined,
             definitionId ? s.definitions[definitionId]?.icon : undefined,
         ] as const,
-        [GatewaySDK.query.connections, GatewaySDK.query.definitions],
+        (q) => [q.connections, q.definitions],
     )
 
     const libraryName = LibrarySDK.useStore(s => {

@@ -9,7 +9,7 @@ export const VersionControlSettings = () => {
     const workflowId = WorkbenchSDK.useDocument(d => d.workflowId);
     const [isDeployed, [publicationsQuery]] = VersionControlSDK.useWith(
         (s) => s.selectors.getDeployed(s, workflowId) !== null,
-        [VersionControlSDK.query.publications(workflowId), VersionControlSDK.query.deployment(workflowId)],
+        (q) => [q.publications(workflowId), q.deployment(workflowId)],
     );
     const hasPublications = (publicationsQuery.data?.publications.length ?? 0) > 0;
         

@@ -2,7 +2,7 @@ import { AssistantSDK } from '../../sdk'
 import { Conversation } from '@/components/Conversation'
 
 const AssistantList = () => {
-    const [currentChatId, [request]] = AssistantSDK.useWith((s) => s.currentChatId, [AssistantSDK.query.threads()])
+    const [currentChatId, [request]] = AssistantSDK.useWith((s) => s.currentChatId, (q) => [q.threads()])
 
     return (
         <Conversation.ThreadList

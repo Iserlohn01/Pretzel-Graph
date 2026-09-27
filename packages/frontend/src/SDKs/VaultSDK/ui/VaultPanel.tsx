@@ -13,7 +13,7 @@ import { VaultGlyph } from '@pretzel-graph/standard-ui/brands/vaultGlyph'
 const VaultPanel = () => {
     const [instances] = VaultSDK.useWith(
         (s) => Object.values(s.credentialInstances),
-        [VaultSDK.query.instances],
+        (q) => [q.instances],
     )
 
     return (

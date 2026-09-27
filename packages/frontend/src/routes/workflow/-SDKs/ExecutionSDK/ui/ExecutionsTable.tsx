@@ -171,7 +171,7 @@ const codeLabel = (code: SystemError.Code) => `${SystemError.Code[code] ?? 'UNKN
 
 
 export function ExecutionsTable({ workflowId }: { workflowId: Workflow.Id }) {
-    const [, [{ data, isPending, isError }]] = ExecutionSDK.useWith(() => null, [ExecutionSDK.query.list(workflowId)])
+    const [, [{ data, isPending, isError }]] = ExecutionSDK.useWith(() => null, (q) => [q.list(workflowId)])
 
     const executions = useMemo(() => data ?? [], [data])
 
