@@ -12,11 +12,14 @@ import { openWorkflowSettingsDialog } from '../-SDKs/WorkbenchSDK/ui/WorkflowSet
 
 export const TopRightPanel = () => {
     const workflowId = WorkbenchSDK.useDocument(d => d.workflowId);
+
     const [isDeployed, [publicationsQuery]] = VersionControlSDK.useWith(
         (s) => s.selectors.getDeployed(s, workflowId) !== null,
-        [VersionControlSDK.query.publications(workflowId), VersionControlSDK.query.deployment(workflowId)],
+        (q) => [q.publications(workflowId), q.deployment(workflowId)],
     );
+
     const hasPublications = (publicationsQuery.data?.publications.length ?? 0) > 0;
+
     const [isLocked, isPubliclyListed] = LibrarySDK.useStore(s => [
         s.workflowMetas[workflowId]?.locked ?? false,
         !!s.workflowMetas[workflowId]?.listing_id 

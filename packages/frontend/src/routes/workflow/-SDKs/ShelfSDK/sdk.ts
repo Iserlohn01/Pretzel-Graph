@@ -38,7 +38,7 @@ export class ShelfSDKImpl extends BaseSDK<ShelfSDK.State> {
 
     public readonly actions: ShelfSDK.Actions = _createShelfActions_(this);
 
-    public readonly query = {
+    public override readonly query = {
         section: (section: Shelf.Section) => ({
             queryKey:   ['shelf', 'section', section] as const,
             queryFn:    () => this.actions.loadSection(section),

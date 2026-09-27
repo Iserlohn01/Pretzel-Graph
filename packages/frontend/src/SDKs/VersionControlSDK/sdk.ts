@@ -27,7 +27,7 @@ export class VersionControlSDKImpl extends BaseSDK<VersionControlSDK.State> {
 
     public readonly actions: VersionControlSDK.Actions = createVersionControlSDKActions(this)
 
-    public readonly query = {
+    public override readonly query = {
         publications: (workflowId: Workflow.Id) => ({
             queryKey:  ['version-control', 'publications', workflowId] as const,
             queryFn:   () => this.actions.list(workflowId),

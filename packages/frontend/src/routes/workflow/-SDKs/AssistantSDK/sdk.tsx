@@ -43,7 +43,7 @@ export class AssistantSDKImpl extends BaseSDK<AssistantSDK.State> {
 
     public readonly actions: AssistantSDK.Actions = createAssistantSDKActions(this)
 
-    public readonly query = {
+    public override readonly query = {
         threads: () => ({
             queryKey:  ['assistant', 'threads'] as const,
             queryFn:   () => this.actions.thread.list(),

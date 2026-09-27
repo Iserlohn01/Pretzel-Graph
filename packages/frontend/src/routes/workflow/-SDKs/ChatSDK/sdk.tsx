@@ -45,7 +45,7 @@ export class ChatSDKImpl extends BaseSDK<ChatSDK.State> {
     public readonly actions = createChatSDKActions(this);
 
 
-    public readonly query = {
+    public override readonly query = {
         list: (workflowId: Workflow.Id) => ({
             queryKey:  ['chat', 'list', workflowId] as const,
             queryFn:   () => this.actions.chat.listByWorkflow(workflowId),

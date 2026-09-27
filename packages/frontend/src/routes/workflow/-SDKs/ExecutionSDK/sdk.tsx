@@ -46,7 +46,7 @@ export class ExecutionSDKImpl extends BaseSDK<ExecutionSDK.State> {
 
     public readonly actions: ExecutionSDK.Actions = createExecutionSDKActions(this);
 
-    public readonly query = {
+    public override readonly query = {
         list: (workflowId: Workflow.Id) => ({
             queryKey:  ['execution', 'list', workflowId] as const,
             queryFn:   () => this.actions.list(workflowId),
