@@ -2,6 +2,7 @@ import z from "zod"
 import { Workflow } from "../Workflow"
 import { Port } from "../Foundations/Port"
 import { Projection } from "../Foundations/Projection"
+import { SystemError } from "../SystemError"
 
 // ─── Recording ────────────────────────────────────────────────────────────
 // Per-execution flight recorder data. 1:1 with Execution — identified by
@@ -90,6 +91,7 @@ export namespace Recording {
             outputSnapshot: z.record(Port.Output.Id, DataBank.PortSnapshot.Id).default({}),
             fieldSnapshot:  z.record(z.string(), z.unknown()).optional(),
             metrics:        z.record(z.string(), Metric.Schema).optional(),
+            error:          SystemError.Schema.optional(),         // set when status is failed
         })
     }
     export type UnitOfWork = z.infer<typeof UnitOfWork.Schema>

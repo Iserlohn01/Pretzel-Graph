@@ -7,6 +7,6 @@ import { DeploymentRepository } from '../Deployment/deployment.repository';
 @Module({
     imports: [CloudModule],
     providers: [ListingService, ListingRegistry, DeploymentRepository],
-    exports: [ListingService],
+    exports: [ListingService, ListingRegistry],
 })
 export class ListingModule {}

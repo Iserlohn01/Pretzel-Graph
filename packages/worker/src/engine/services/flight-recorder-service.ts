@@ -1,4 +1,4 @@
-import { Execution } from "@pretzel-graph/shared/domain"
+import { Execution, type SystemError } from "@pretzel-graph/shared/domain"
 import { Workflow } from "@pretzel-graph/shared/domain/Workflow"
 import { Port } from "@pretzel-graph/shared/domain/Foundations/Port"
 import { Vertex } from "../../S2/graph"
@@ -174,9 +174,10 @@ export class FlightRecorderService {
 
 
     // Called from AggexEngine.onNodeError.
-    // Sets status to failed and duration.
+    // Sets status to failed, duration and the error.
     public onNodeFailed(
         nodeId: Workflow.Node.Id,
+        error:  SystemError.Serialized,
     ): void {
         const unitId = this.mostRecentUoW.get(nodeId)
         if (!unitId) return
@@ -186,6 +187,7 @@ export class FlightRecorderService {
 
         unit.status   = "failed"
         unit.duration = performance.now() - this.origin - unit.startedAt
+        unit.error    = error
 
         const metrics = this.collectMetrics(nodeId, unitId, "failed", unit.duration!)
         if (metrics) unit.metrics = metrics

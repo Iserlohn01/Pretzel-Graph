@@ -19,7 +19,7 @@ function ExecutionsRoute() {
     return (
         <ScrollArea.Root className='h-screen -ml-(--sidebar-width) [mask-image:linear-gradient(to_bottom,transparent,black_80px)]'>
             <div className='flex flex-col pt-[60px] h-full gap-4'>
-                <div className='w-full pl-[calc(var(--sidebar-width)+1rem)] pb-4 overflow-x-auto'>
+                <div className='w-full max-h-[50vh] shrink-0 pl-[calc(var(--sidebar-width)+1rem)] pb-4 overflow-auto'>
                     <ActivityKanban />
                 </div>
                 <div className='pl-(--sidebar-width) pr-10'>

@@ -167,6 +167,13 @@ export class ShelfService {
         }
     }
 
+    // A blueprint from the core index or the extended shelf; null when neither has it.
+    public async findBlueprint(blueprintId: Blueprint.Id): Promise<Blueprint | null> {
+        const extended = await this.ensureExtendedShelfIndex();
+
+        return getCoreIndex().blueprints[blueprintId] ?? extended[blueprintId] ?? null;
+    }
+
     getBlueprint(
         payload: Shelf.API.Blueprint.Get.Request
     ): { blueprint: Blueprint } {

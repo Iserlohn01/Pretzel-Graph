@@ -88,7 +88,7 @@ export function NewSubMenu({ folderId }: { folderId: Library.Folder.Id }) {
                 </ContextMenu.Item>
                 <ContextMenu.Item
                     icon={<SystemIcons.Graph className='size-4' />}
-                    onClick={() => LibrarySDK.dialogs.openCreateWorkflow({ folder_id: folderId })}
+                    onClick={() => LibrarySDK.dialogs.openTemplateGallery({ folder_id: folderId })}
                 >
                     Workflow
                 </ContextMenu.Item>

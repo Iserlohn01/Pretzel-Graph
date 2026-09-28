@@ -9,9 +9,10 @@ import { useLibraryBrowser } from '../root'
 type Props = {
     size?: ButtonProps['size']
     triggerClassName?: string
+    align?: "center" | "end" | "start"
 }
 
-export const CreateBtn = ({ size, triggerClassName }: Props) => {
+export const CreateBtn = ({ size, triggerClassName, align }: Props) => {
     const { cwd } = useLibraryBrowser()
 
     const [definitions] = GatewaySDK.useWith(
@@ -23,16 +24,17 @@ export const CreateBtn = ({ size, triggerClassName }: Props) => {
         <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
                 <Button size={size} className={triggerClassName}>
+                    <SystemIcons.Plus/>
                     Create
                 </Button>
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content align="end">
+            <DropdownMenu.Content align={align ?? "end"}>
                 <DropdownMenu.Item
                     onClick={() => LibrarySDK.dialogs.openCreateFolder({ parent_folder_id: cwd })}
                 ><SystemIcons.Folder />Folder</DropdownMenu.Item>
 
                 <DropdownMenu.Item
-                    onClick={() => LibrarySDK.dialogs.openCreateWorkflow({ folder_id: cwd })}
+                    onClick={() => LibrarySDK.dialogs.openTemplateGallery({ folder_id: cwd })}
                 ><SystemIcons.Graph />Workflow</DropdownMenu.Item>
 
                 <DropdownMenu.Item

@@ -20,7 +20,7 @@ const Schema = z.object({
 })
 type Values = z.infer<typeof Schema>
 
-export function openCreateWorkflowDialog(args: { folder_id: Library.Folder.Id }) {
+export function openCreateWorkflowDialog(args: { folder_id: Library.Folder.Id; onCreated?: (workflow: Workflow) => void }) {
     const id = `create-workflow-${args.folder_id}`
     DialogSDK.actions.push(id, (props) => (
         <DialogSDK.Template {...props} className={DIALOG_CLASSNAME}>
@@ -38,7 +38,7 @@ export function openEditWorkflowDialog(args: { workflow: Library.WorkflowMeta })
     ))
 }
 
-function CreateWorkflowContent({ dialogId, folder_id }: { dialogId: string; folder_id: Library.Folder.Id }) {
+function CreateWorkflowContent({ dialogId, folder_id, onCreated }: { dialogId: string; folder_id: Library.Folder.Id; onCreated?: (workflow: Workflow) => void }) {
     const form = useForm<Values>({
         resolver: zodResolver(Schema),
         defaultValues: { display_name: '', description: '' },
@@ -46,13 +46,14 @@ function CreateWorkflowContent({ dialogId, folder_id }: { dialogId: string; fold
 
     const onSubmit = async (values: Values) => {
         try {
-            await LibrarySDK.actions.workflow.create({
+            const workflow = await LibrarySDK.actions.workflow.create({
                 folder_id,
                 display_name: values.display_name,
                 description: values.description || null,
             })
             toast.success('Workflow created')
             DialogSDK.actions.pop(dialogId)
+            onCreated?.(workflow)
         } catch (err) {
             console.error('Failed to create workflow', err)
             toast.error('Failed to create workflow')

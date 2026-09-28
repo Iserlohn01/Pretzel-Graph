@@ -1,6 +1,7 @@
 import { openCreateFolderDialog, openEditFolderDialog, openDeleteFolderDialog } from './folder-dialogs'
 import { openCreateWorkflowDialog, openEditWorkflowDialog, openDeleteWorkflowDialog } from "./workflow-dialogs"
 import { openDependencySelectorDialog } from './DependencySelector'
+import { openTemplateGalleryDialog } from './template-dialogs'
 import { openLibrarySelector } from './LibrarySelector'
 import { openCreateSkillDialog, openSkillEditorDialog, openDeleteSkillDialog } from './skill-dialogs'
 import { openCreateConnectionDialog, openEditConnectionDialog, openDeleteConnectionDialog } from './connection-dialogs'
@@ -19,6 +20,7 @@ export function _createLibraryDialogs_() {
         openCreateWorkflow:       openCreateWorkflowDialog,
         openEditWorkflow:         openEditWorkflowDialog,
         openDeleteWorkflow:       openDeleteWorkflowDialog,
+        openTemplateGallery:      openTemplateGalleryDialog,
         openDependencySelector:   openDependencySelectorDialog,
         openLibrarySelector:     openLibrarySelector,
     }
