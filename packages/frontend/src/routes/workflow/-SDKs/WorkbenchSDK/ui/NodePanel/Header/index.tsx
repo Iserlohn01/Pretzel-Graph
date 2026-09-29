@@ -10,6 +10,7 @@ import { DialogSDK } from '@pretzel-graph/standard-ui/SDKs/DialogSDK'
 import Tipped from '@/components/Tipped'
 import FloatContainer from '@/components/FloatContainer'
 import type { Blueprint } from '@pretzel-graph/shared/domain/Foundations/Blueprint'
+import React from 'react'
 
 interface HeaderProps {
     hyNode: Workflow.Node.Hydrated
@@ -20,33 +21,56 @@ interface HeaderProps {
 
 export const NodeSidebarHeader = ({ hyNode, isEditing, onEditStart, onEditFinish }: HeaderProps) => {
     const isFullscreen = DialogSDK.useStore(s => s.selectors.isDialogOpen(s, "fullscreen-node-panel"))
+    const isTool = WorkbenchSDK.useDocument(d => d.selectors.node.isTool(d, hyNode.id))
+    
+    const { ui, id: nodeId } = hyNode;
+    const iconColor = ui.iconColor
+    ? `var(--${ui.iconColor})`
+    : `var(--${ui.accent}-foreground)`;
+
+    const tintFilterId = `tool-tint-${React.useId().replace(/[^a-zA-Z0-9-_]/g, '')}`;
+      const iconStyle = isTool
+        ? { color: iconColor, filter: `url(#${tintFilterId})` }
+        : { color: iconColor };
+    
+      const tintFilter = isTool && (
+        <svg width="0" height="0" className="absolute" aria-hidden>
+          <filter id={tintFilterId} colorInterpolationFilters="sRGB">
+            <feFlood style={{ floodColor: "var(--port-Tool)" }} result="tint" />
+            <feBlend in="tint" in2="SourceGraphic" mode="color" result="tinted" />
+            <feComposite in="tinted" in2="SourceGraphic" operator="in" />
+          </filter>
+        </svg>
+      );
+
     return (
         <div className='absolute z-10 top-2 left-2 right-2 flex flex-row gap-2'>
             <div
                 className='flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md min-w-0 max-w-xs'
                 style={{
-                    backgroundColor: hyNode.ui.accent ? `color-mix(in srgb, var(--${hyNode.ui.accent}) 25%, transparent)` : 'var(--muted)',
+                    backgroundColor: ui.accent ? `color-mix(in srgb, var(--${ui.accent}) 25%, transparent)` : 'var(--muted)',
                 }}
             >
+                {tintFilter}
                 <IconRenderer
                     className='my-auto h-4 w-4 shrink-0'
-                    name={hyNode.ui.icon ?? ""}
-                    style={{ color: hyNode.ui.iconColor ? `var(--${hyNode.ui.iconColor})` : hyNode.ui.accent ? `var(--${hyNode.ui.accent}-foreground)` : undefined }}
+                    name={ui.icon ?? ""}
+                    style={iconStyle}
                 />
                 {isEditing ? (
                     <Input
                         className='h-5 text-sm font-semibold bg-transparent shadow-none w-full min-w-0 focus-visible:ring-0 truncate'
-                        defaultValue={hyNode.ui.displayName}
+                        defaultValue={ui.displayName}
                         autoFocus
                         onBlur={e => WorkbenchSDK.actions.node.setDisplayName(hyNode.id, e.target.value)}
-                        style={{ color: hyNode.ui.accent ? `var(--${hyNode.ui.accent}-foreground)` : undefined }}
+                        style={{ color: ui.accent ? `var(--${ui.accent}-foreground)` : undefined }}
                     />
                 ) : (
                     <h4
                         className='text-sm font-semibold truncate min-w-0'
-                        style={{ color: hyNode.ui.accent ? `var(--${hyNode.ui.accent}-foreground)` : undefined }}
+                        style={{ color: ui.accent ? `var(--${ui.accent}-foreground)` : undefined }}
                     >
-                        {hyNode.ui.displayName}
+                        {ui.displayName}
                     </h4>
                 )}
             </div>
