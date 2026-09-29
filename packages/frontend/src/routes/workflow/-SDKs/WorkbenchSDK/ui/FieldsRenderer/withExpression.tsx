@@ -90,7 +90,7 @@ function ExpressionInput({ placeholder, className }: {
             </Button>
             <Input
                 size="sm"
-                variant="ghost"
+                variant="default"
                 value={value}
                 placeholder={placeholder}
                 onChange={(e) => onChange(e.currentTarget.value)}

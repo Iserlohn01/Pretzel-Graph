@@ -11,9 +11,10 @@ const AssistantButton = () => {
             <Button
                 variant={isSidebarVisible ? "language-model" : "ghost"}
                 onClick={() => AssistantSDK.actions.ui.toggleSidebar()}
-                size={"icon-sm"}
+                size="icon-sm"
+                className='gap-1 rounded-full text-[var(--port-LanguageModel-foreground)]!'
             >
-                <SystemIcons.Sparkles className='scale-80 ' />
+                <SystemIcons.Sparkles className="size-4 fill-current" />
             </Button>
         </Tipped>
     )

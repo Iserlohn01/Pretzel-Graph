@@ -17,7 +17,7 @@ const textareaBaseClasses = `border-input-border placeholder:text-muted-foregrou
   focus-visible:border-ring focus-visible:ring-ring/50
   aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40
   aria-invalid:border-destructive
-  bg-input/50 flex field-sizing-content w-full border
+  bg-input flex field-sizing-content w-full border
   shadow-sm shadow-black/10 transition-[color,box-shadow] outline-none focus-visible:ring-[3px]
   disabled:cursor-not-allowed disabled:opacity-50`
 

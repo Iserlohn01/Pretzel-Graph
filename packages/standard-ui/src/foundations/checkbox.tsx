@@ -14,7 +14,7 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        `peer cursor-pointer border border-border bg-input/60
+        `peer cursor-pointer border border-border bg-input
           
          data-[state=checked]:bg-primary!
          data-[state=checked]:text-white 

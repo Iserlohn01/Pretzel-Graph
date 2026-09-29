@@ -1,18 +1,20 @@
 import { useState } from 'react'
-import { Button, Spinner } from '@pretzel-graph/standard-ui/foundations'
+import { Button, Frame, Spinner, Tooltip } from '@pretzel-graph/standard-ui/foundations'
+import { Card } from '@pretzel-graph/standard-ui/foundations/card'
 import { SystemIcons } from '@pretzel-graph/standard-ui/icons'
 import { IconRenderer } from '@pretzel-graph/standard-ui/icons/IconRenderer'
 import { WorkflowIllustration } from '@pretzel-graph/standard-ui/icons/illustrations'
 import { DialogSDK } from '@pretzel-graph/standard-ui/SDKs/DialogSDK'
 import type { Library, Listing, Template } from '@pretzel-graph/shared/domain'
 import { TEMPLATE_CATEGORIES, type TemplateCategory, type TemplateCategoryId } from '@pretzel-graph/shared/constants/templateCategories'
-import classNames from 'classnames'
+import { cn } from '@pretzel-graph/standard-ui/utils/cn'
 import { toast } from 'sonner'
 import { router } from '@/main'
 import { LibrarySDK } from '../sdk'
 import { openCreateWorkflowDialog } from './workflow-dialogs'
 
-const MAX_BLUEPRINT_ICONS = 6
+// Every integration blueprint id starts with this.
+const INTEGRATION_BLUEPRINT_ID_PREFIX = 'Integrations.'
 
 // The sidebar entry that shows every template.
 const ALL_TEMPLATES = 'all'
@@ -189,7 +191,7 @@ function SidebarEntry({ icon, label, active, onClick }: { icon: string; label: s
         <button
             type='button'
             onClick={onClick}
-            className={classNames(
+            className={cn(
                 'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm',
                 active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground',
             )}
@@ -206,44 +208,45 @@ function TemplateCard({ template, disabled, loading, onClick }: {
     loading: boolean
     onClick: () => void
 }) {
-    const blueprintMetaList = Object.values(template.blueprintMetas)
-
-    const shownBlueprintMetas = blueprintMetaList.slice(0, MAX_BLUEPRINT_ICONS)
-
-    const hiddenBlueprintCount = blueprintMetaList.length - shownBlueprintMetas.length
+    const integrationBlueprintMetas = Object.values(template.blueprintMetas)
+        .filter((blueprintMeta) => blueprintMeta.id.startsWith(INTEGRATION_BLUEPRINT_ID_PREFIX))
 
     return (
-        <button
-            type='button'
-            disabled={disabled}
-            onClick={onClick}
-            className={classNames(
-                'group flex min-h-[180px] flex-col gap-3 rounded-xl bg-accent/20 p-4 text-left transition-colors',
-                disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent/40',
-            )}
-        >
-            <div className='flex items-center gap-2'>
-                {template.icon ? (
-                    <IconRenderer name={template.icon} className='size-6 shrink-0' style={{ color: colorOf(template.iconColor ?? template.accent) }} />
-                ) : (
-                    <WorkflowIllustration className='size-6 shrink-0' style={{ color: 'var(--primary)' }} />
+        <Frame.Root className='w-full overflow-hidden'>
+            <Frame.Panel
+                className={cn('h-[120px] flex flex-col transition-shadow p-0 pt-3 pb-2', disabled ? 'cursor-default opacity-60' : 'cursor-pointer')}
+                aria-disabled={disabled}
+                onClick={disabled ? undefined : onClick}
+            >
+                <Card.Header>
+                    <div className='flex flex-row items-center gap-2 min-w-0'>
+                        {template.icon ? (
+                            <IconRenderer name={template.icon} className='size-6 shrink-0' style={{ color: colorOf(template.iconColor ?? template.accent) }} />
+                        ) : (
+                            <WorkflowIllustration className='size-6 shrink-0' style={{ color: 'var(--primary)' }} />
+                        )}
+                        <Card.Title className='text-sm truncate'>{template.name}</Card.Title>
+                        {loading && <Spinner className='size-3.5 shrink-0' />}
+                    </div>
+                </Card.Header>
+                {template.description && (
+                    <Card.Content className='mt-2'>
+                        <p className='line-clamp-2 text-xs text-muted-foreground'>{template.description}</p>
+                    </Card.Content>
                 )}
-                <p className='min-w-0 flex-1 truncate font-medium'>{template.name}</p>
-                {loading && <Spinner className='size-3.5 shrink-0' />}
-            </div>
-
-            {template.description && (
-                <p className='line-clamp-3 text-xs text-muted-foreground'>{template.description}</p>
-            )}
-
-            <div className='mt-auto flex items-center gap-1.5'>
-                {shownBlueprintMetas.map((blueprintMeta) => (
-                    <span key={blueprintMeta.id} title={blueprintMeta.ui.displayName} className='flex'>
-                        <IconRenderer name={blueprintMeta.ui.icon} className='size-4' style={{ color: colorOf(blueprintMeta.ui.iconColor ?? blueprintMeta.ui.accent ?? null) }} />
-                    </span>
+            </Frame.Panel>
+            <Frame.Footer className='flex flex-row items-center gap-1 px-2! py-1! overflow-x-auto w-full h-[35px] [scrollbar-width:none]'>
+                {integrationBlueprintMetas.map((blueprintMeta) => (
+                    <Tooltip.Root key={blueprintMeta.id}>
+                        <Tooltip.Trigger className='flex shrink-0 p-1'>
+                            <IconRenderer name={blueprintMeta.ui.icon} className='size-4' style={{ color: colorOf(blueprintMeta.ui.iconColor ?? blueprintMeta.ui.accent ?? null) }} />
+                        </Tooltip.Trigger>
+                        <Tooltip.Content>
+                            {blueprintMeta.ui.displayName}
+                        </Tooltip.Content>
+                    </Tooltip.Root>
                 ))}
-                {hiddenBlueprintCount > 0 && <span className='text-xs text-muted-foreground'>+{hiddenBlueprintCount}</span>}
-            </div>
-        </button>
+            </Frame.Footer>
+        </Frame.Root>
     )
 }

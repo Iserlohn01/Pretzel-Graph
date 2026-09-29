@@ -100,7 +100,7 @@ code {
 
   --muted: oklch(95.2% 0 0);
   --muted-foreground: theme(--color-neutral-500);
-  --input: rgb(255 255 255 / 0.7);
+  --input: theme(--color-white);
   --input-border: var(--border);
 
   --radius: 0.875rem;
@@ -288,7 +288,7 @@ code {
   --border: rgb(255 255 255 / 0.1);
   --separator: rgb(58 58 60);
 
-  --input: rgb(255 255 255 / 0.06);
+  --input: rgb(35, 35, 35);
   --input-border: rgb(54, 54, 54);
   --ring: color-mix(in oklch, #FF6A00 55%, transparent);
 

@@ -36,7 +36,7 @@ const Value: SelectComponents.Value = (props) => (
 )
 
 const triggerVariantClasses = {
-  default: `border-input-border bg-input/50 hover:bg-input/50 shadow-sm shadow-black/10 rounded-md border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]`,
+  default: `border-input-border bg-input shadow-sm shadow-black/10 rounded-md border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]`,
   ghost: `border-transparent bg-transparent hover:bg-input/30 shadow-none rounded-md border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]`,
   "ghost-no-focus": `border-transparent bg-transparent shadow-none rounded-md border`,
 }
