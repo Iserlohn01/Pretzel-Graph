@@ -28,7 +28,10 @@ export const Blueprint = defineBlueprint({
             tooltip: "Tavily pre-summarizes an answer from the search results."
         }),
     ],
-    inputs: [],
+    inputs: [
+
+        
+    ],
     outputs: [
         defineOutput.Retriever("retriever", "Retriever", {}),
     ],
