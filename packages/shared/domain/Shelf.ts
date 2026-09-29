@@ -52,9 +52,9 @@ export namespace Shelf {
             toolCompatible:  boolean
             proxyCompatible: boolean
             /** Has derivative branches: some field values reshape the node. */
-            derivable:       boolean
+            isDerivable:     boolean
             /** Starts a run only when the run elects it; a manual run skips it. */
-            igniter:         boolean
+            isIgniter:       boolean
             /** Never starts a run; fires only when another node triggers it. */
             passive:         boolean
             fieldIds:        Foundations.Field.Id[]
@@ -68,8 +68,8 @@ export namespace Shelf {
             drawerIds:       z.array(Drawer.Id).optional(),
             toolCompatible:  z.boolean().optional(),
             proxyCompatible: z.boolean().optional(),
-            derivable:       z.boolean().optional(),
-            igniter:         z.boolean().optional(),
+            isDerivable:     z.boolean().optional(),
+            isIgniter:       z.boolean().optional(),
             passive:         z.boolean().optional(),
             /** Has every one of these fields. */
             fieldIds:        z.array(Foundations.Field.Id).optional(),
@@ -88,6 +88,9 @@ export namespace Shelf {
         }
 
         const DEFAULT_LIMIT = 50
+
+        // Fields every node has; left out of a summary's fieldIds.
+        export const FRAMEWORK_FIELD_IDS: ReadonlySet<string> = new Set(["signalDependency", "dataDependency", "onErrorStrategy", "ignition_policy"])
 
         const drawerOf = (() => {
             let map: Map<string, Drawer.Id> | null = null
@@ -108,10 +111,10 @@ export namespace Shelf {
                 drawerId:        drawerOf(bp.id),
                 toolCompatible:  bp.toolCompatible  ?? false,
                 proxyCompatible: bp.proxyCompatible ?? false,
-                derivable:       Foundations.Blueprint.isDerivable(bp),
-                igniter:         bp.igniter ?? false,
+                isDerivable:     Foundations.Blueprint.isDerivable(bp),
+                isIgniter:       bp.igniter ?? false,
                 passive:         bp.passive ?? false,
-                fieldIds:        bp.fields.map(f => f.id),
+                fieldIds:        bp.fields.map(f => f.id).filter(id => !FRAMEWORK_FIELD_IDS.has(id)),
                 inputVariants:   [...new Set(bp.inputs.map(p => p.variant))],
                 outputVariants:  [...new Set(bp.outputs.map(p => p.variant))],
             }
@@ -130,8 +133,8 @@ export namespace Shelf {
                 (!needle    || s.displayName.toLowerCase().includes(needle)) &&
                 (q.toolCompatible  === undefined || s.toolCompatible  === q.toolCompatible) &&
                 (q.proxyCompatible === undefined || s.proxyCompatible === q.proxyCompatible) &&
-                (q.derivable       === undefined || s.derivable       === q.derivable) &&
-                (q.igniter         === undefined || s.igniter         === q.igniter) &&
+                (q.isDerivable     === undefined || s.isDerivable     === q.isDerivable) &&
+                (q.isIgniter       === undefined || s.isIgniter       === q.isIgniter) &&
                 (q.passive         === undefined || s.passive         === q.passive) &&
                 (!q.fieldIds || q.fieldIds.every(id => s.fieldIds.includes(id))) &&
                 (!inputs    || s.inputVariants.some(v => inputs.has(v))) &&

@@ -1,8 +1,9 @@
 import { Foundations } from "../../Foundations"
 import { Port } from "../../Foundations/Port"
-import type { Workflow } from "../../Workflow"
+import { Workflow } from "../../Workflow"
 import { Document } from "../Document"
 import { Summary } from "./summary"
+import { assertNoTemplating } from "./field"
 import { ID_PATTERN, type CreateNodeRequest, type InputPortSpec, type Position } from "./types"
 import type { OperationalClient } from "."
 
@@ -26,34 +27,14 @@ export class NodeOperations {
 
     constructor(private readonly client: OperationalClient) {}
 
-    public get(nodeId: Workflow.Node.Id): Summary.NodeDetail {
-        const d    = this.client.document
-        const node = d.data.nodes[nodeId]
+    public get(nodeId: Workflow.Node.Id): Workflow.Node.Hydrated {
+        const d        = this.client.document
+        const hydrated = d.selectors.node.hydrate(d, nodeId)
 
-        if (!node)
+        if (!hydrated)
             throw new Error(`Node ${nodeId} not found`)
 
-        const shape = d.cache.resolvedShape[nodeId]
-
-        return {
-            node,
-            fields:         shape?.fields  ?? [],
-            inputs:         shape?.inputs  ?? [],
-            outputs:        shape?.outputs ?? [],
-            staticValues:   d.selectors.node.getStaticValues(d, nodeId),
-            fieldModes:     Object.fromEntries((shape?.fields ?? []).map(field => [field.id, {
-                mode:       this.client.field.getMode(d, nodeId, field),
-                switchable: Foundations.Field.canSwitchMode(field),
-            }])),
-            credentials:    d.selectors.credential.getTemplates(d, nodeId).map(template => ({
-                templateId:   template.id,
-                templateName: template.displayName,
-                optional:     template.optional ?? false,
-                instanceId:   d.selectors.credential.getInstance(d, nodeId, template.id),
-            })),
-            connectedEdges: Summary.connectedEdges(d, nodeId),
-            issues:         d.issues.nodes[nodeId] ?? null,
-        }
+        return hydrated
     }
 
     // A new node starts on its base branch with plain values only. A reconciling field
@@ -72,6 +53,9 @@ export class NodeOperations {
 
             if (!field && !inputs.has(id))
                 throw new Error(`Unknown field ${id}; the base has ${[...fields.keys()].join(", ") || "no fields"}`)
+
+            if (field && Foundations.Field.usesExpression(field))
+                assertNoTemplating(field.id, request.staticValues?.[id])
         }
 
         const position = request.position ?? placeNext(d)
@@ -83,6 +67,20 @@ export class NodeOperations {
             position:     d.data.ui.layout[nodeId],
             staticValues: d.data.staticValues[nodeId] ?? {},
         })
+
+        // A node that runs a workflow needs that workflow's snapshot; without it the node is removed.
+        const shapeRef = d.selectors.node.dependency.getShapeRef(d, nodeId)
+
+        if (shapeRef && !d.selectors.dependency.get(d, shapeRef)) {
+            try {
+                await this.client.field.attachDependency(nodeId, Workflow.Node.SHAPE_DEPENDENCY_FIELD_ID, shapeRef)
+            }
+            catch (error) {
+                this.delete(nodeId)
+
+                throw new Error(`Could not load the workflow ${blueprint.id} runs: ${(error as Error).message}`)
+            }
+        }
 
         return { nodeId, issues: d.issues.nodes[nodeId] ?? null }
     }

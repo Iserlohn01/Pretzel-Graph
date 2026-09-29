@@ -5,6 +5,7 @@ import { rebuildTree } from './tree';
 import { createFolderActions, type FolderActions } from './folder';
 import { createWorkflowActions, type WorkflowActions } from './workflow';
 import { createSkillActions, type SkillActions } from './skill';
+import { createTemplateActions, type TemplateActions } from './template';
 
 export type { FileSystemNodeData } from './tree';
 
@@ -20,6 +21,7 @@ export type _LibrarySDKActions = {
     folder: FolderActions;
     workflow: WorkflowActions;
     skill: SkillActions;
+    template: TemplateActions;
 };
 
 export function _createLibraryActions_(sdk: LibrarySDKImpl) {
@@ -61,5 +63,6 @@ export function _createLibraryActions_(sdk: LibrarySDKImpl) {
         folder:   createFolderActions(sdk),
         workflow: createWorkflowActions(sdk),
         skill:    createSkillActions(sdk),
+        template: createTemplateActions(sdk),
     } satisfies _LibrarySDKActions
 }

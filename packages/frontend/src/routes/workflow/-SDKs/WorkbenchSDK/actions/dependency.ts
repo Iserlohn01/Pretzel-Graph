@@ -4,10 +4,6 @@ import { withCommit, withAsyncCommit, withCyclesRecompute, createToastPromise } 
 import { api } from "@/SDKs/ApiInterceptorSDK"
 import { toast } from "sonner"
 
-// Fetches a resource's current state, shaped as the snapshot a dependency embeds.
-export function loadResource(ref: Dependency.Ref): Promise<Resource.API.Load.Response> {
-    return Resource.API.load(api, ref)
-}
 
 export function createDependencyActions(sdk: WorkbenchSDKImpl) {
     const setDocument = sdk.setDocument
@@ -15,7 +11,7 @@ export function createDependencyActions(sdk: WorkbenchSDKImpl) {
 
     const applyUpdate = async (update: Dependency.Update): Promise<boolean> => {
         const promise = createToastPromise<{ dependency: Dependency.Value }>(
-            loadResource(update),
+            Resource.API.load(api, update),
             {
                 loading: "Updating dependency…",
                 success: "Dependency updated",

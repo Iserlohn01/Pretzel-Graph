@@ -30,6 +30,15 @@ function getCoreIndex(): Shelf.Index {
     return index;
 }
 
+// Each blueprint a drawer lists, once.
+function getDrawerBlueprints(core: Record<Blueprint.Id, Blueprint>): Blueprint[] {
+    const ids = new Set(Object.values(ALL_DRAWERS).flatMap(drawer => drawer.blueprintIds));
+
+    return [...ids]
+        .map(id => core[id as Blueprint.Id])
+        .filter((blueprint): blueprint is Blueprint => !!blueprint);
+}
+
 @Injectable()
 export class ShelfService {
 
@@ -123,12 +132,13 @@ export class ShelfService {
         return blueprints;
     }
 
-    // Core index plus the extended shelf, summarized once per process and again if the extended
-    // shelf is refetched.
+    // The blueprints the shelf's drawers show plus the extended shelf, summarized once per process
+    // and again if the extended shelf is refetched.
     async queryBlueprints(query: Shelf.Catalogue.Query): Promise<Shelf.Catalogue.Result> {
         const extended = await this.ensureExtendedShelfIndex();
+        const core     = getCoreIndex().blueprints;
 
-        this.summaries ??= [...Object.values(getCoreIndex().blueprints), ...Object.values(extended)]
+        this.summaries ??= [...getDrawerBlueprints(core), ...Object.values(extended)]
             .map(Shelf.Catalogue.summarize);
 
         return Shelf.Catalogue.query(this.summaries, query);
@@ -155,6 +165,13 @@ export class ShelfService {
             this.log.warning(`Skipped extended shelf listing ${listing.id}: ${(error as Error).message}`);
             return null;
         }
+    }
+
+    // A blueprint from the core index or the extended shelf; null when neither has it.
+    public async findBlueprint(blueprintId: Blueprint.Id): Promise<Blueprint | null> {
+        const extended = await this.ensureExtendedShelfIndex();
+
+        return getCoreIndex().blueprints[blueprintId] ?? extended[blueprintId] ?? null;
     }
 
     getBlueprint(

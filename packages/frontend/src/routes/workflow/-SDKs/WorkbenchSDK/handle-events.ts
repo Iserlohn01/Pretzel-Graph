@@ -1,4 +1,5 @@
-import { Workbench, Workflow } from "@pretzel-graph/shared/domain";
+import { Resource, Workbench, Workflow, type Dependency } from "@pretzel-graph/shared/domain";
+import { api } from "@/SDKs/ApiInterceptorSDK";
 import { toast } from "sonner";
 import { LibrarySDK } from "@/SDKs/LibrarySDK/sdk";
 import { RealtimeSDK } from "@/SDKs/Realtime/sdk";
@@ -80,6 +81,14 @@ const reduceEvent = withCyclesRecompute((d: Workbench.Document, event: Workbench
             break;
         }
 
+        case "field:dependencySet": {
+            const snapshot = d.selectors.dependency.get(d, event.ref);
+
+            if (d.data.nodes[event.nodeId] && snapshot)
+                d.reducers.field.dependency.setValue(d, event.nodeId, event.fieldId, event.ref, snapshot);
+            break;
+        }
+
         case "field:modeSet":
             if (d.data.nodes[event.nodeId])
                 d.reducers.field.setIsExpression(d, event.nodeId, event.fieldId, event.mode === "expression");
@@ -109,9 +118,30 @@ const animateEvent = (sdk: WorkbenchSDKImpl, event: Workbench.Event) => {
         animateNodeMove(event.nodeId);
 };
 
+// Events carry the ref only; the snapshot is loaded here unless the document already embeds it.
+const loadSnapshot = async (sdk: WorkbenchSDKImpl, ref: Dependency.Ref): Promise<Dependency.Value | null> => {
+    if (sdk.selectors.dependency.get(sdk.document, ref))
+        return null;
+
+    try {
+        const { dependency } = await Resource.API.load(api, ref);
+
+        return dependency;
+    }
+    catch (error) {
+        console.error("Failed to load dependency for a mirrored edit", error);
+
+        return null;
+    }
+};
+
 const applyEvent = async (sdk: WorkbenchSDKImpl, event: Workbench.Event) => {
     const base = event.type === "node:created"
         ? await ShelfSDK.actions.getBlueprint(event.node.blueprintId)
+        : null;
+
+    const snapshot = event.type === "field:dependencySet"
+        ? await loadSnapshot(sdk, event.ref)
         : null;
 
     if (event.workflowId !== sdk.document.workflowId)
@@ -126,6 +156,9 @@ const applyEvent = async (sdk: WorkbenchSDKImpl, event: Workbench.Event) => {
         sdk.setDocument(d => {
             if (base)
                 d.reducers.blueprint.register(d, base);
+
+            if (snapshot && event.type === "field:dependencySet")
+                d.reducers.dependency.register(d, event.ref, snapshot);
 
             reduceEvent(d, event);
         });

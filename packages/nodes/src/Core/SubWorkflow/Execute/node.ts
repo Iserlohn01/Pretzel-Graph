@@ -3,6 +3,7 @@ import { RuntimeNode } from "@pretzel-graph/node-sdk";
 import { InferIncoming, InferOutputs } from "@pretzel-graph/node-sdk";
 import { Blueprint } from "./blueprint";
 import { Airlock, Execution, Workflow } from "@pretzel-graph/shared/domain";
+import { Field } from "@pretzel-graph/shared/domain/Foundations/Field";
 import { ExecutionContext, TurboGraph } from "@pretzel-graph/worker";
 import { System } from "@pretzel-graph/shared/system";
 import { Node as ExposeInputPortNode } from "../ExposeInputPort/node";
@@ -76,8 +77,6 @@ export class Node extends RuntimeNode<typeof Blueprint> {
             },
         };
 
-        this.injectGlobalFieldValues(childWorkflowData);
-
         this.subExecutionCtx = await this.subEnvironment.compile(
             subWorkflowId,
             childWorkflowData,
@@ -91,6 +90,7 @@ export class Node extends RuntimeNode<typeof Blueprint> {
         incoming: InferIncoming<typeof Blueprint>,
     ): Promise<InferOutputs<typeof Blueprint>> {
 
+        this.injectGlobalFieldValues();
         this.injectInputNodeValues(incoming);
 
         try {
@@ -116,8 +116,11 @@ export class Node extends RuntimeNode<typeof Blueprint> {
         return this.aggregatedMetrics;
     }
 
-    private injectGlobalFieldValues(childWorkflowData: Workflow.Data): void {
-        childWorkflowData.staticValues[Workflow.GLOBAL_FIELDS_NODE_ID] = this.fieldValues;
+    // The child's global fields read this run's evaluated values, falling back to their initial values.
+    private injectGlobalFieldValues(): void {
+        const values = Field.mapValuesToIds(this.subExecutionCtx.workflowData.globalFields, this.fieldValues);
+
+        this.subExecutionCtx.airlockAPI.setGlobalFieldValues(values);
     }
 
     private injectInputNodeValues(incoming: InferIncoming<typeof Blueprint>): void {

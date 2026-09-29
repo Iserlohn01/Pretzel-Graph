@@ -2,7 +2,7 @@ import { immer } from "zustand/middleware/immer";
 import { _createLibraryActions_, type _LibrarySDKActions } from "./actions";
 import { _createLibrarySelectors_, type _LibrarySDKSelectors } from "./selectors";
 import { BaseSDK } from "@pretzel-graph/standard-ui/SDKs/Base";
-import { Workflow, Library, Skill, type Gateway } from "@pretzel-graph/shared/domain";
+import { Workflow, Library, Skill, type Gateway, type Listing, type Template } from "@pretzel-graph/shared/domain";
 import { SDK } from "@pretzel-graph/standard-ui/SDKs/SDKManager";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
@@ -13,6 +13,8 @@ import { GatewaySDK } from '@/SDKs/GatewaySDK/sdk';
 import { rebuildTree } from './actions/tree';
 
 const BOOTSTRAP_STALE_TIME = 60_000
+
+const TEMPLATES_STALE_TIME = 5 * 60_000
 
 @SDK("Library")
 export class LibrarySDKImpl extends BaseSDK<LibrarySDK.State> {
@@ -32,6 +34,7 @@ export class LibrarySDKImpl extends BaseSDK<LibrarySDK.State> {
             folders: {},
             workflowMetas: {},
             skillMetas: {},
+            templates: {},
             treeExpandedByFolderId: {},
             treeData: {},
             showHidden: readShowHidden(),
@@ -51,6 +54,11 @@ export class LibrarySDKImpl extends BaseSDK<LibrarySDK.State> {
             queryKey: ['library', 'bootstrap'] as const,
             queryFn: () => this.actions.bootstrap.get(),
             staleTime: BOOTSTRAP_STALE_TIME,
+        },
+        templates: {
+            queryKey: ['library', 'templates'] as const,
+            queryFn: () => this.actions.template.list(),
+            staleTime: TEMPLATES_STALE_TIME,
         },
     }
 
@@ -85,6 +93,7 @@ export namespace LibrarySDK {
         selectors: _LibrarySDKSelectors
         workflowMetas: Record<Workflow.Id, Library.WorkflowMeta>;
         skillMetas: Record<Skill.Id, Skill.Meta>;
+        templates: Record<Listing.Id, Template>;
         treeExpandedByFolderId: Record<Library.Folder.Id, boolean>;
         treeData: TreeDomain.Dummy.Branch<FileSystemNodeData>;
         showHidden: boolean;

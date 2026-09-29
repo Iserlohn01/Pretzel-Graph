@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Listing, SystemError, Workflow } from '@pretzel-graph/shared/domain';
+import { Listing, SystemError, Template, Workflow } from '@pretzel-graph/shared/domain';
 import { CloudService } from '../Cloud/cloud.service';
 import { RELEASE } from '@/utils/release';
 
@@ -37,6 +37,13 @@ export class ListingRegistry {
         const body = await this.read(`/api/listings/updates?ids=${ids.join(',')}&${RELEASE_QUERY}`);
 
         return Listing.API.Updates.Response.parse(body).updates;
+    }
+
+    // Every template this release can run, without the graphs.
+    public async getTemplates(): Promise<Record<Listing.Id, Template.API.Registry.Template>> {
+        const body = await this.read(`/api/templates?${RELEASE_QUERY}`);
+
+        return Template.API.Registry.Response.parse(body).templates;
     }
 
     // This workspace's listing ids, keyed by its workflow ids.

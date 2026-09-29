@@ -16,7 +16,7 @@ const STATUS_TINT = {
     running: "[--frame-panel-bg:color-mix(in_srgb,var(--active-foreground)_10%,var(--card))]   [--frame-panel-border-color:color-mix(in_srgb,var(--info-foreground)_35%,transparent)]",
     paused: "[--frame-panel-bg:color-mix(in_srgb,var(--warning)_10%,var(--card))]           [--frame-panel-border-color:color-mix(in_srgb,var(--warning)_35%,transparent)]",
     suspended: "[--frame-panel-bg:color-mix(in_srgb,var(--warning)_10%,var(--card))]           [--frame-panel-border-color:color-mix(in_srgb,var(--warning)_35%,transparent)]",
-    completed: "",
+    completed: "[--frame-panel-bg:color-mix(in_srgb,var(--success-foreground)_10%,var(--card))] [--frame-panel-border-color:color-mix(in_srgb,var(--success-foreground)_35%,transparent)]",
     failed: "[--frame-panel-bg:color-mix(in_srgb,var(--destructive)_10%,var(--card))]       [--frame-panel-border-color:color-mix(in_srgb,var(--destructive)_35%,transparent)]",
     terminated: "[--frame-panel-bg:color-mix(in_srgb,var(--destructive)_6%,var(--card))]        [--frame-panel-border-color:color-mix(in_srgb,var(--destructive)_20%,transparent)]",
     // Keyed by the enum, so adding a status fails to compile until it has a tint.

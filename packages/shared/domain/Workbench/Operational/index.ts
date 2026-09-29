@@ -1,6 +1,6 @@
 import type { Document } from "../Document"
 import type { Event } from "../event"
-import type { BlueprintResolver, CredentialResolver, OnOperation, Operation } from "./types"
+import type { BlueprintResolver, CredentialResolver, DependencyResolver, OnOperation, Operation } from "./types"
 import { WorkflowOperations } from "./workflow"
 import { NodeOperations } from "./node"
 import { EdgeOperations } from "./edge"
@@ -37,6 +37,7 @@ export class OperationalClient {
     constructor(
         public readonly resolveBlueprint:  BlueprintResolver,
         public readonly resolveCredential: CredentialResolver,
+        public readonly resolveDependency: DependencyResolver,
         public readonly onOperation:       OnOperation,
     ) {}
 
@@ -119,4 +120,4 @@ export class OperationalClient {
 export { Summary } from "./summary"
 export { ID_PATTERN } from "./types"
 export type { FieldMode } from "./types"
-export type { BlueprintResolver, CredentialResolver, OnOperation, Operation, CreateNodeRequest, InputPortSpec, GlobalFieldSpec, GlobalFieldPatch, GlobalFieldVariant, Position, Connection } from "./types"
+export type { BlueprintResolver, CredentialResolver, DependencyResolver, OnOperation, Operation, CreateNodeRequest, InputPortSpec, GlobalFieldSpec, GlobalFieldPatch, GlobalFieldVariant, Position, Connection } from "./types"

@@ -123,7 +123,7 @@ export class ErrorService {
         nodeId: Workflow.Node.Id,
         error:  SystemError.Serialized,
     ) {
-        this.engine.flightRecorder?.onNodeFailed(nodeId);
+        this.engine.flightRecorder?.onNodeFailed(nodeId, error);
         this.engine.services.session.onNodeFailed(nodeId, error);
     }
 

@@ -1,6 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { ToolBudget } from "@pretzel-graph/node-sdk";
-import { Foundations, Workbench, type Workflow } from "@pretzel-graph/shared/domain";
+import { Foundations, ToolView, Workbench, type Workflow } from "@pretzel-graph/shared/domain";
 import { z } from "zod/v3";
 
 import type { WorkbenchClient } from "../client";
@@ -49,8 +49,8 @@ const operation = z.discriminatedUnion("op", [
         blueprintId:  z.string(),
         position:     position().optional().describe("Omit to place right of the rightmost node."),
         staticValues: z.record(z.unknown()).optional()
-            .describe("Keyed by field id or input port id. Reconcile fields are rejected; set them with a field.set operation."),
-    }).describe("Add a node. Its id is in the results, so it can't be referenced in the same call."),
+            .describe("Keyed by field id or input port id. Reconcile fields are rejected; set them with a field.set operation. A field that starts in expression mode takes one JavaScript expression, e.g. $igniter.chat_id or `Event: ${JSON.stringify($in.event)}`; never {{ }}."),
+    }).describe("Add a node. Returns its id with its fields, ports, modes and issues, as workbench_get_node does; the id can't be referenced in the same call."),
 
     z.object({ op: z.literal("node.delete"), nodeId: nodeId() })
         .describe("Remove a node and its edges."),
@@ -78,7 +78,7 @@ const operation = z.discriminatedUnion("op", [
         nodeId:  nodeId(),
         fieldId: z.string(),
         value:   z.unknown()
-            .describe("Same shape as the field's value in workbench_get_node. In expression mode, the expression as a string. Not type-checked here."),
+            .describe("Same shape as the field's value in workbench_get_node. In expression mode, one JavaScript expression as a string, e.g. $igniter.chat_id or `Event: ${JSON.stringify($in.event)}`; never {{ }}. Not type-checked here."),
         mode:    z.enum(["static", "expression"]).optional().describe("Omit to keep the current mode."),
     }).describe("Set a field's value, optionally switching its mode. A reshaping field returns the ports added and removed and the edges dropped."),
 
@@ -104,6 +104,40 @@ const toConnection = (edge: z.infer<z.ZodObject<typeof edgeEndpoints>>): Workben
     sourceHandle: edge.sourcePortId as Foundations.Port.Output.Id,
     target:       edge.targetNodeId as Workflow.Node.Id,
     targetHandle: edge.targetPortId as Foundations.Port.Input.Id,
+});
+
+type BatchResult = Awaited<ReturnType<WorkbenchClient["operations"]["batch"]>>;
+
+// A node as a model reads it; null once a later operation removed it.
+const readNode = (client: WorkbenchClient, nodeId: Workflow.Node.Id): ToolView.Node | null => {
+    try {
+        return ToolView.node(client.operations.document, nodeId);
+    }
+    catch {
+        return null;
+    }
+};
+
+// Each result as a model reads it: a created node in full, a reshape with the fields it left, issues by type.
+const summarizeResult = (client: WorkbenchClient, op: Workbench.Operation, result: unknown): unknown => {
+    if (!result || typeof result !== "object")
+        return result;
+
+    const { issues, derivation, ...rest } = result as Record<string, unknown> & { nodeId?: Workflow.Node.Id };
+
+    if (op.op === "node.create")
+        return { nodeId: rest.nodeId, node: readNode(client, rest.nodeId as Workflow.Node.Id) };
+
+    return {
+        ...rest,
+        ...(issues !== undefined ? { issues: ToolView.issues(issues as never) } : {}),
+        ...(derivation ? { derivation, fields: readNode(client, rest.nodeId as Workflow.Node.Id)?.fields } : {}),
+    };
+};
+
+const summarizeBatch = (client: WorkbenchClient, operations: Workbench.Operation[], batch: BatchResult) => ({
+    ...batch,
+    results: batch.results.map((result, index) => summarizeResult(client, operations[index], result)),
 });
 
 
@@ -172,10 +206,10 @@ export function buildTools(client: WorkbenchClient) {
 
 
     const getNode = tool(
-        async ({ nodeId }) => ToolBudget.value(client.operations.node.get(nodeId as Workflow.Node.Id)),
+        async ({ nodeId }) => ToolBudget.value(ToolView.node(client.operations.document, nodeId as Workflow.Node.Id)),
         {
             name:        "workbench_get_node",
-            description: `Get one node: its blueprint, fields, ports, current field values with each field's mode (static or expression, and whether it can switch), the credential templates it takes with the instance attached to each, and validation issues, and for each port the edges on it with the node and port at their other end. Read-only.`,
+            description: `Get one node: its blueprint, fields with each one's mode (static or expression; switchable false when it can't change), ports, current values, the credential templates it takes with the instance attached to each, validation issues by type, and the edge ids on each port (an edge id reads source|port|target|port). frameworkFields holds the fields every node has: signalDependency (AND, OR, XOR), dataDependency (AND, OR), onErrorStrategy (terminate, propagate, do_nothing) and, on igniters, ignition_policy (every_event, drop_while_running); set them with field.set like any other field. Read-only.`,
             schema:      z.object({ nodeId: nodeId() }),
         },
     );
@@ -198,7 +232,9 @@ export function buildTools(client: WorkbenchClient) {
             if (!client.inTransaction)
                 return "No open transaction; call workbench_begin_transaction first.";
 
-            return ToolBudget.value(await client.operations.batch(mapped as Workbench.Operation[]));
+            const batch = await client.operations.batch(mapped as Workbench.Operation[]);
+
+            return ToolBudget.value(summarizeBatch(client, mapped as Workbench.Operation[], batch));
         },
         {
             name:        "workbench_apply",

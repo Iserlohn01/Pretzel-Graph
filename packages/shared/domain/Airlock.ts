@@ -98,17 +98,10 @@ export namespace Airlock {
     export function resolveGlobalFieldValues(
         workflowData: Workflow.Data,
     ): Record<Field.Id, unknown> {
-        const values = {} as Record<Field.Id, unknown>;
-        const overrides = workflowData.staticValues[Workflow.GLOBAL_FIELDS_NODE_ID] ?? {};
-
-        for (const field of workflowData.globalFields ?? []) {
-            if (field.id in overrides)
-                values[field.id] = overrides[field.id as Field.Id];
-            else if ("initialValue" in field)
-                values[field.id] = field.initialValue;
-        }
-
-        return values;
+        return Field.mapValuesToIds(
+            workflowData.globalFields ?? [],
+            workflowData.staticValues[Workflow.GLOBAL_FIELDS_NODE_ID] ?? {},
+        );
     }
 
     /**
@@ -156,5 +149,7 @@ export namespace Airlock {
         executeAsyncCode(code: Source.Code, nodeId: Workflow.Node.Id, incoming: unknown): Promise<unknown>
         // Deep-copy a persistent scope global out to the host (e.g. `$metrics` after a sub-run).
         readGlobal<T = unknown>(name: string): T | undefined
+        // Replaces the values `$globalFields` reads in this scope.
+        setGlobalFieldValues(values: Record<Field.Id, unknown>): void
     }
 }

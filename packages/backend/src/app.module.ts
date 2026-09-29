@@ -23,6 +23,7 @@ import { VaultModule } from './services/Vault/vault.module';
 import { ConsultationModule } from './services/Consultation/consultation.module';
 import { HealthModule } from './services/Health/health.module';
 import { ListingModule } from './services/Listing/listing.module';
+import { TemplateModule } from './services/Template/template.module';
 import { ActivityModule } from './services/Activity/activity.module';
 import { WorkerModule } from './services/Worker/worker.module';
 import { GatewayModule } from './services/Gateway/gateway.module';
@@ -65,6 +66,7 @@ import { GatewayIgnitionModule } from './services/GatewayIgnition/gateway-igniti
         ConsultationModule,
         HealthModule,
         ListingModule,
+        TemplateModule,
         ActivityModule,
         WorkerModule,
         GatewayModule,

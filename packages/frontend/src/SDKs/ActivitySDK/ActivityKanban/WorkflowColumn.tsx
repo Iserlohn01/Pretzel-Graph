@@ -11,7 +11,7 @@ const WorkflowColumn = ({ workflow }: { workflow: Activity.Workflow }) => {
 
     return (
         <Kanban.Column key={workflow.id} value={workflow.id} asChild>
-            <Frame.Root spacing='sm' className='p-2 gap-2'>
+            <Frame.Root spacing='sm' className='p-2 gap-2 bg-card/80'>
                 <Frame.Header className='flex flex-row px-2 pt-0! items-center gap-2'>
                     <IconRenderer
                         name={workflow.icon ?? "Graph"}

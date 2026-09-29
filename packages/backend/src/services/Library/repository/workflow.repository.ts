@@ -139,6 +139,32 @@ export class WorkflowRepository extends Repository {
             .execute();
     }
 
+    // A new workflow holding a graph that came from elsewhere.
+    @Transactional('user')
+    @ZodReturn(Workflow.Schema)
+    public async createWithData(
+        principal: Principal.User,
+        payload: Library.API.Workflow.Create.Request & Pick<Workflow, 'icon' | 'accent' | 'icon_color' | 'data'>,
+    ): Promise<Workflow> {
+        const row = await this.trx
+            .insertInto('workflows')
+            .values({
+                folder_id: payload.folder_id,
+                display_name: payload.display_name,
+                description: payload.description ?? null,
+                icon: payload.icon,
+                accent: payload.accent,
+                icon_color: payload.icon_color,
+                data: payload.data,
+                created_by: principal.userId,
+                locked: false,
+            })
+            .returningAll()
+            .executeTakeFirstOrThrow();
+
+        return DB.Workflow.toDomain(row);
+    }
+
     @Transactional('user')
     @ZodReturn(Workflow.Schema)
     public async duplicate(

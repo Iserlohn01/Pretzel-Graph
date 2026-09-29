@@ -4,6 +4,9 @@ import { Chat, Foundations } from "@pretzel-graph/shared/domain";
 import { SystemError } from "@pretzel-graph/shared/domain/SystemError";
 
 
+// The response metadata a stored message keeps: what providers read back when the message is resent, and what identifies it.
+const RESPONSE_METADATA_KEYS = ["model_provider", "output_version", "model_name", "id", "status"] as const;
+
 
 export class Synthesizer {
 
@@ -91,7 +94,7 @@ export class Synthesizer {
             type:              msg._getType(),
             content:           msg.content,
             additional_kwargs: msg.additional_kwargs,
-            response_metadata: msg.response_metadata,
+            response_metadata: this.trimResponseMetadata(msg.response_metadata),
         };
 
         if (msg.name !== undefined)              projected.name = msg.name;
@@ -103,6 +106,35 @@ export class Synthesizer {
         if ("tool_call_id" in msg)               projected.tool_call_id = (msg as any).tool_call_id;
 
         return projected;
+    }
+
+
+    private static trimResponseMetadata(metadata: Record<string, unknown> | undefined): Record<string, unknown> {
+        const trimmed: Record<string, unknown> = {};
+
+        for (const key of RESPONSE_METADATA_KEYS)
+            if (metadata?.[key] !== undefined)
+                trimmed[key] = metadata[key];
+
+        return trimmed;
+    }
+
+
+    // Copies the reasoning item's encrypted content from the dropped response output, so a resent message carries it.
+    private static keepEncryptedReasoning(msg: LC.BaseMessage): Record<string, unknown> {
+        const kwargs    = msg.additional_kwargs as Record<string, any>;
+        const output    = (msg.response_metadata as Record<string, any> | undefined)?.output;
+        const reasoning = kwargs.reasoning;
+
+        if (!reasoning || reasoning.encrypted_content || !Array.isArray(output))
+            return kwargs;
+
+        const item = output.find((entry: any) => entry?.type === "reasoning" && entry.id === reasoning.id);
+
+        if (!item?.encrypted_content)
+            return kwargs;
+
+        return { ...kwargs, reasoning: { ...reasoning, encrypted_content: item.encrypted_content } };
     }
 
 
@@ -422,8 +454,8 @@ export class Synthesizer {
         const meta = {
             name:              msg.name ?? null,
             lc_id:             msg.id ?? null,
-            additional_kwargs: msg.additional_kwargs ?? null,
-            response_metadata: msg.response_metadata ?? null,
+            additional_kwargs: msg.additional_kwargs ? this.keepEncryptedReasoning(msg) : null,
+            response_metadata: msg.response_metadata ? this.trimResponseMetadata(msg.response_metadata) : null,
         };
 
         switch (msg.type) {
@@ -475,6 +507,15 @@ export class Synthesizer {
     }
 
 
+    // A Responses API message with no text had empty content; as "" it would be resent as an empty message
+    // between the reasoning and the function call it produced.
+    private static restoreAIContent(msg: Chat.Message.AI): LC.AIMessage["content"] {
+        const fromResponses = !!msg.data.additional_kwargs?.["__openai_function_call_ids__"];
+
+        return msg.content === "" && fromResponses ? [] : msg.content;
+    }
+
+
     public static chatMessageToLC(msg: Chat.Message): LC.BaseMessage {
         const meta = {
             name:              msg.data?.name ?? undefined,
@@ -489,7 +530,7 @@ export class Synthesizer {
             case "ai": {
                 const a = msg as Chat.Message.AI;
                 return new AIMessage({
-                    content: a.content,
+                    content: this.restoreAIContent(a),
                     tool_calls: (a.data.tool_calls ?? []).map(tc => ({
                         id:   tc.id,
                         name: tc.name,
