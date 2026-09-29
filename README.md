@@ -2,89 +2,40 @@
 
 ![The PretzelGraph editor, with an agent graph on the canvas](.github/assets/hero-editor.webp)
 
-A visual agent runtime. Compose plain workflows, agentic workflows, and
-multi-agent topologies on a node-graph canvas; the system compiles those
-graphs and executes them on a signal-based engine where cycles are
-first-class, so agents can loop, hand off, and re-fire.
+A visual agent graph runtime. Build agents on a canvas, from a single ReAct
+loop to multi-agent systems. Graphs can loop, so an agent can reason, call a
+tool, and go again. Any workflow can be published and reused as a node in
+another, so agents nest and compose.
 
 ## Running it
 
 Requires Docker and Node.
 
-The stateful services run in containers; the packages run on your machine.
-
 ```bash
 docker compose up -d            # postgres, redis, auth
-cp .env.example .env            # values already match the compose defaults
+cp .env.example .env
 npm install
+npm run dev                     # http://localhost:5173
 ```
 
-Then each package in its own terminal:
+Open http://localhost:5173 and sign up.
 
-```bash
-npm run dev --workspace=packages/backend     # http://localhost:3001
-npm run dev --workspace=packages/worker
-npm run dev --workspace=packages/frontend    # http://localhost:5173
-```
-
-Open http://localhost:5173 and sign up. **The first account to sign up becomes
-the owner**; later ones are refused until an owner admits them.
-
-You never create tables by hand — the backend migrates its database when it
-starts. Data lives in Docker volumes, so it survives restarts. To start over:
-
-```bash
-docker compose down -v
-```
-
-Clear the browser's site data as well. Sessions are stored client-side, and a
-token from the deleted database still verifies — the next page load will
-recreate rows under the old account.
-
-### Running the whole thing in containers
+To run everything in containers instead:
 
 ```bash
 docker compose --profile full up -d     # http://localhost:8080
 ```
 
-The backend serves the editor and the API on the same port, so there is one
-origin and nothing to proxy. Pass `--profile full` when stopping it too —
-`docker compose down` on its own leaves those containers running, and the
-network cannot be removed while they hold it:
-
-```bash
-docker compose --profile full down -v
-```
-
-Both modes share the same volumes, so switching between them does not switch
-databases.
-
-### Bringing your own Postgres
-
-Point `DATABASE_URL` at it and skip the `postgres` container. The only
-requirement is that the database itself exists (`createdb pretzel`) — the
-backend creates everything inside it.
-
 ### Notes
 
-- Nothing else may be listening on `5432`, `6379` or `9999`. A Redis running on
-  your machine will shadow the container's and the two will not share state.
-- `PRETZEL_ENCRYPTION_KEY` must be 64 hex characters, and the backend and worker
-  must agree on it. Changing it makes existing stored credentials unreadable.
+- Ports `5432`, `6379` and `9999` must be free.
+- To use your own Postgres, point `DATABASE_URL` at an existing database.
+- `PRETZEL_ENCRYPTION_KEY` must be 64 hex characters and the same for the backend
+  and worker. Changing it makes stored credentials unreadable.
 
 ## License
 
-PretzelGraph is **source-available**, not open source. It is licensed under the
-[Elastic License 2.0](./LICENSE).
-
-- ✅ Free to use, modify, and **self-host** — personal projects, research,
-  education, and inside any company for its own operations.
-- ❌ You may not offer it to others as a **hosted or managed service**.
-- ❌ You may not circumvent license-key-gated functionality.
-
-For hosting PretzelGraph as a service, embedding it in a commercial offering, or
-enterprise features, a separate license is required. See
-[COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md).
+[Elastic License 2.0](./LICENSE). Free to self-host; offering it as a hosted service requires a [commercial license](./COMMERCIAL-LICENSE.md).
 
 ## Contributing
 

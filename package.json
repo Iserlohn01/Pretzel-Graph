@@ -6,7 +6,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "postinstall": "patch-package",
-        "dev": "concurrently \"npm run dev --workspace=packages/worker\" \"npm run watch:indexes --workspace=packages/nodes\" --names \"WORKER,INDEX\" --prefix-colors \"green,blue\"",
+        "dev": "concurrently \"npm run dev -w packages/backend\" \"npm run dev -w packages/worker\" \"npm run dev -w packages/frontend\" \"npm run watch:indexes -w packages/nodes\" --names \"BACKEND,WORKER,WEB,INDEX\" --prefix-colors \"magenta,green,cyan,blue\"",
         "build:images": "bash scripts/build-images.sh",
         "build:image": "bash scripts/build-images.sh",
         "build": "npm run build --workspaces --if-present"
