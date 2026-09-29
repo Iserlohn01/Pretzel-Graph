@@ -32,7 +32,7 @@ export const buttonVariants = cva(
           hover:bg-primary-hover [a]:hover:bg-primary/80
         `,
         outline: `
-          border-border  hover:bg-muted hover:text-foreground shadow-none
+          border-border bg-input hover:bg-muted hover:text-foreground shadow-none
           dark:border-border dark:hover:bg-input/50 
           aria-expanded:bg-muted aria-expanded:text-foreground
         `,
@@ -90,7 +90,7 @@ export const buttonVariants = cva(
           text-primary shadow-none underline-offset-4 hover:underline
         `,
         input: `
-          bg-input/60 border-border
+          bg-input border-border
         `,
         active: `
           bg-sky-400/20 text-sky-700 hover:bg-sky-400/30 shadow-none

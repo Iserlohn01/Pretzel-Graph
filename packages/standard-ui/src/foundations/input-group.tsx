@@ -14,7 +14,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="input-group"
       role="group"
       className={cn(
-        `border-input-border bg-input/60 
+        `border-input-border bg-input 
         has-[[data-slot=input-group-control]:focus-visible]:border-ring 
         has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 
         has-[[data-slot][aria-invalid=true]]:ring-destructive/20 

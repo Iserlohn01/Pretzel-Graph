@@ -74,42 +74,33 @@ export const BottomPanel = () => {
                         </Popover.Content>
                     </Popover.Root>
                 )}
-                <div key="temporal-controls" className='p-1 w-auto bg-card/90 backdrop-blur-sm border border-border rounded-full flex shadow-md shadow-black/10'>
+
+                <motion.div
+                    key="temporalControls"
+                    className='p-1 w-auto bg-card/90 backdrop-blur-sm border border-border rounded-full flex shadow-md shadow-black/10'
+                >
                     <TemporalControls />
-                </div>
+                </motion.div>
 
                 <motion.div
                     key="controls"
-                    className='relative shadow-md shadow-black/10 flex flex-row p-1 gap-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border overflow-visible'
+                    className='relative shadow-md shadow-black/10 flex flex-row p-1 gap-2 rounded-full bg-card/80 backdrop-blur-sm border border-border overflow-visible'
                     layout
                     transition={{ layout: { type: "spring", stiffness: 400, damping: 30 } }}
                 >
                     <ChatButton />
-                    <AssistantButton />
                     <ExecutionControls canRun={!hasIssues} />
+
                 </motion.div>
 
-                {updateCount > 0 && (
-                    <motion.div
-                        key="dependency-updates"
-                        className='p-1 w-auto bg-card/90 backdrop-blur-sm border border-border rounded-full flex shadow-md shadow-black/10'
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    >
-                        <Tipped label={updateCount === 1 ? '1 dependency update' : `${updateCount} dependency updates`}>
-                            <Button variant='ghost-active' size='icon-sm' className='rounded-full gap-1.5 my-auto' onClick={openDependencyUpdater}>
-                                <SystemIcons.ArrowBigUpDash className='size-4' />
-                            </Button>
-                        </Tipped>
-                    </motion.div>
-                )}
-
-
-                {showIgniterAttributesPanel && (
-                    <div key="attributes" className='px-2 w-auto bg-card/90 backdrop-blur-sm border border-border rounded-full flex gap-3 cursor-pointer'>
-                        {showRecordingIcon && (
+                <motion.div
+                    key="assistant"
+                    className='relative shadow-md shadow-black/10 flex flex-row p-1 gap-2 rounded-full bg-card/80 backdrop-blur-sm border border-border overflow-visible'
+                    layout
+                    transition={{ layout: { type: "spring", stiffness: 400, damping: 30 } }}
+                >   
+                    <AssistantButton />
+                    {showRecordingIcon && (
                             <Tipped label={isActivelyRecording ? 'Recording' : 'Ready To Record'}>
                                 <div className='h-full flex flex-row gap-1.5'>
                                     <SystemIcons.Film className='size-4 text-secondary-foreground my-auto' />
@@ -125,29 +116,31 @@ export const BottomPanel = () => {
                                 </div>
                             </Tipped>
                         )}
-                    </div>
-                )}
+                        {updateCount > 0 && (
+                            <Tipped label={updateCount === 1 ? '1 dependency update' : `${updateCount} dependency updates`}>
+                                <Button variant='ghost-active' size='icon-sm' className='rounded-full gap-1.5 my-auto' onClick={openDependencyUpdater}>
+                                    <SystemIcons.ArrowBigUpDash className='size-4.5' />
+                                </Button>
+                            </Tipped>
+                        )}
+                        {hasIssues && (
+                            <Popover.Root key="issues">
+                                <Popover.Trigger asChild>
+        
+                                    <div className='w-auto h-auto mx-auto mt-[5px] pr-2'>
+                                        <GlowingAlertTriangle />
+                                    </div>
+                                </Popover.Trigger>
+                                <Popover.Content side="top" align="center" sideOffset={12} className='rounded-xl p-3 max-w-[450px]'>
+                                    <IssuesViewer />
+                                </Popover.Content>
+                            </Popover.Root>
+                        )}
+                </motion.div>
 
-                {hasIssues && (
-                    <Popover.Root key="issues">
-                        <Popover.Trigger asChild>
-                            <motion.div
-                                className='absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 p-1 h-10 w-10 bg-card/90 backdrop-blur-sm border border-border rounded-full flex cursor-pointer'
-                                initial={{ x: -24, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                exit={{ x: -24, opacity: 0 }}
-                                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                            >
-                                <div className='w-auto h-auto mx-auto mt-[5px]'>
-                                    <GlowingAlertTriangle />
-                                </div>
-                            </motion.div>
-                        </Popover.Trigger>
-                        <Popover.Content side="top" align="center" sideOffset={12} className='rounded-xl p-3 max-w-[450px]'>
-                            <IssuesViewer />
-                        </Popover.Content>
-                    </Popover.Root>
-                )}
+
+
+        
             </AnimatePresence>
         </div>
 
